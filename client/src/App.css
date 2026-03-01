@@ -1,45 +1,93 @@
-@import url("https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
 
-/* Theme variables - use in component CSS */
-:root {
-  --color-bg-dark: #0f1419;
-  --color-bg-card: #1a2332;
-  --color-border: #374151;
-  --color-text: #ffffff;
-  --color-text-muted: #9ca3af;
-  --color-text-dim: #6b7280;
-  --color-accent: #facc15;
-  --color-accent-dim: rgba(250, 204, 21, 0.2);
-  --color-success: #34d399;
-  --color-error: #f87171;
-  --font-sans: "Ubuntu", system-ui, sans-serif;
-  --radius: 12px;
-  --radius-sm: 8px;
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+
+  /* Brand Colors */
+  --color-brand-yellow: hsl(50 98% 64%);
+  --color-brand-yellow-muted: hsl(50 98% 64% / 0.1);
+
+  /* Background & Card Colors */
+  --color-bg-dark: hsl(0 0% 4%);
+  --color-card-dark: hsl(0 0% 8%);
+  --color-card-border: hsl(0 0% 100% / 0.05);
+  --color-background-light: hsl(0 0% 100%);
+
+  /* Secondary/Accent Styles */
+  --color-accent-yellow: hsl(51 74% 63%);
+  --color-dark-bg: hsl(0 0% 5%);
+  --color-card-bg: hsl(0 0% 9% / 0.8);
+
+  /* Legacy compatibility colors */
+  --color-codecampus-dark: #0f1419;
+  --color-codecampus-card: #1a2332;
+  --color-codecampus-accent: #facc15;
+  --color-codecampus-muted: #64748b;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: var(--font-sans);
+@layer base {
+  body {
+    @apply bg-bg-dark text-white font-sans antialiased;
+  }
 }
 
-body {
-  overflow-x: hidden;
-  background-color: var(--color-bg-dark);
-  color: var(--color-text);
+/* Glow Effects */
+.glow-yellow {
+  box-shadow: 0 0 20px rgba(253, 224, 71, 0.15);
 }
 
+.text-gradient-yellow {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-yellow to-yellow-200;
+}
+
+/* Auth Card Styles */
+.auth-card {
+  @apply bg-card-dark/80;
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--color-card-border);
+  border-radius: 1rem;
+}
+
+.bg-glow {
+  background: radial-gradient(circle at center, hsla(51, 74%, 63%, 0.05) 0%, transparent 70%);
+}
+
+/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background-color: var(--color-bg-card);
+  background-color: var(--color-card-dark);
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #64748b;
-  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+/* Custom styles for Challenges */
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  grid-auto-rows: minmax(100px, auto);
+  gap: 1.5rem;
+}
+
+.glass-card {
+  background: #1a1a1a;
+  border: 1px solid rgba(225, 195, 100, 0.1);
+  transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+  border-color: rgba(225, 195, 100, 0.4);
+  transform: translateY(-2px);
+}
+
+.subtle-wave {
+  background-image: url("data:image/svg+xml,%3Csvg width='100' height='20' viewBox='0 0 100 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M21.184 20c.357-.13.72-.264 1.088-.402l1.768-.661C33.64 15.347 39.647 13 50 13c10.354 0 16.36 2.347 25.96 6.279l1.768.662c.368.138.73.272 1.088.402H100V0H0v20h21.184z' fill='%23e1c364' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E");
 }

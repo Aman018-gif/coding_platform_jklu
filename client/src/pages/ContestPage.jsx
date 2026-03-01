@@ -4,7 +4,7 @@ import { useContext } from "react";
 import { Context } from "../main";
 import { Navigate } from "react-router-dom";
 import api from "../api/client";
-import CodeCampusNav from "../components/layout/CodeCampusNav";
+import Navbar from "../layout/Navbar";
 import ContestProblemCard from "../components/contest/ContestProblemCard";
 import ContestSidebar from "../components/contest/ContestSidebar";
 import LeaderboardTable from "../components/contest/LeaderboardTable";
@@ -52,7 +52,7 @@ export default function ContestPage() {
 
   return (
     <div className="contest-page">
-      <CodeCampusNav />
+      <Navbar />
       <main className="contest-page__main">
         <h1 className="contest-page__title">{contest.name}</h1>
 

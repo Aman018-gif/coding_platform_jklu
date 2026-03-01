@@ -3,7 +3,7 @@ import { Navigate } from "react-router-dom";
 import { useContext } from "react";
 import { Context } from "../main";
 import api from "../api/client";
-import CodeCampusNav from "../components/layout/CodeCampusNav";
+import Navbar from "../layout/Navbar";
 import ActiveNowHero from "../components/dashboard/ActiveNowHero";
 import DailyTracker from "../components/dashboard/DailyTracker";
 import PickAChallenge from "../components/dashboard/PickAChallenge";
@@ -49,7 +49,7 @@ export default function Dashboard() {
 
   return (
     <div className="dashboard-page">
-      <CodeCampusNav />
+      <Navbar />
       <main className="dashboard-page__main">
         <h1 className="dashboard-page__title">
           Coding <span>Challenges</span>

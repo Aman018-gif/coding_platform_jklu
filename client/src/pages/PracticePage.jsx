@@ -4,7 +4,7 @@ import { useContext } from "react";
 import { Context } from "../main";
 import { Navigate } from "react-router-dom";
 import api from "../api/client";
-import CodeCampusNav from "../components/layout/CodeCampusNav";
+import Navbar from "../layout/Navbar";
 import "../styles/PracticePage.css";
 
 export default function PracticePage() {
@@ -30,7 +30,7 @@ export default function PracticePage() {
 
   return (
     <div className="practice-page">
-      <CodeCampusNav />
+      <Navbar />
       <main className="practice-page__main">
         <h1 className="practice-page__title">Practice</h1>
         {loading ? (

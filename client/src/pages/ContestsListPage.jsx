@@ -4,7 +4,7 @@ import { useContext } from "react";
 import { Context } from "../main";
 import { Navigate } from "react-router-dom";
 import api from "../api/client";
-import CodeCampusNav from "../components/layout/CodeCampusNav";
+import Navbar from "../layout/Navbar";
 import "../styles/ContestsListPage.css";
 
 export default function ContestsListPage() {
@@ -30,7 +30,7 @@ export default function ContestsListPage() {
 
   return (
     <div className="contests-list-page">
-      <CodeCampusNav />
+      <Navbar />
       <main className="contests-list-page__main">
         <h1 className="contests-list-page__title">Contests</h1>
         {loading ? (

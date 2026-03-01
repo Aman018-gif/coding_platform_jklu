@@ -7,7 +7,7 @@ import api from "../api/client";
 import { Context } from "../main";
 import { Navigate } from "react-router-dom";
 import Footer from "../layout/Footer";
-import CodeCampusNav from "../components/layout/CodeCampusNav";
+import Navbar from "../layout/Navbar";
 
 const Home = () => {
   const { isAuthenticated, setIsAuthenticated, setUser } = useContext(Context);
@@ -29,7 +29,7 @@ const Home = () => {
 
   return (
     <>
-      <CodeCampusNav />
+      <Navbar />
       <section className="home">
         <Hero />
         <Technologies />

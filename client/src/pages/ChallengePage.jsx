@@ -4,7 +4,7 @@ import { useContext } from "react";
 import { Context } from "../main";
 import { Navigate } from "react-router-dom";
 import api from "../api/client";
-import CodeCampusNav from "../components/layout/CodeCampusNav";
+import Navbar from "../layout/Navbar";
 import CodeEditor, { LANGUAGE_IDS } from "../components/editor/CodeEditor";
 import TestCasesConsole from "../components/editor/TestCasesConsole";
 import "../styles/ChallengePage.css";
@@ -98,7 +98,7 @@ export default function ChallengePage() {
 
   return (
     <div className="challenge-page">
-      <CodeCampusNav />
+      <Navbar />
       <div className="challenge-page__body">
         <div className="challenge-page__split">
           <div className="challenge-page__panel-left">

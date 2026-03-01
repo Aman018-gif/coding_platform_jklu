@@ -1,26 +1,22 @@
-import React from "react";
-import "../styles/Footer.css";
-import { Link } from "react-router-dom";
-import fb from "../assets/fb.png";
-import yt from "../assets/yt.png";
-import git from "../assets/git.png";
-import linkedin from "../assets/linkedin.png";
-
-const Footer = () => {
-  return (
-    <footer className="footer">
-      <div className="footer-container">
-        <div className="footer-logo">
-          <h2>CODING HOUR</h2>
-          <p>HERE PLACE FOOTER.</p>
-        </div>
-      
-          </div>
-      <div className="footer-bottom">
-        <p> All Rights Reserved.</p>
-      </div>
-    </footer>
-  );
-};
-
-export default Footer;
+export default function Footer() {
+    return (
+        <footer className="border-t border-white/5 py-6 mt-8 bg-transparent">
+            <div className="max-w-[400px] mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+                <div className="text-[10px] font-bold text-white/20 tracking-widest uppercase">
+                    CODECAMPUS PLATFORM. ALL RIGHTS RESERVED.
+                </div>
+                <div className="flex gap-8">
+                    {['Documentation'].map(item => (
+                        <a
+                            key={item}
+                            href=""
+                            className="text-[10px] font-bold text-white/30 hover:text-brand-yellow uppercase tracking-widest transition-colors"
+                        >
+                            {item}
+                        </a>
+                    ))}
+                </div>
+            </div>
+        </footer>
+    );
+}
