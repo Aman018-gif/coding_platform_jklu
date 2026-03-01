@@ -4,7 +4,7 @@ import { Context } from '../main';
 import { Link, useLocation } from "react-router-dom";
 
 const navLinks = [
-    { to: "/dashboard", label: "Challenges" },
+    { to: "/challenges", label: "Challenges" },
     { to: "/practice", label: "Practice" },
     { to: "/contests", label: "Contests" },
 ];

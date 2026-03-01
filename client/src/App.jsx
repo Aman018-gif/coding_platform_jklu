@@ -1,7 +1,6 @@
 import React, { useContext, useEffect } from "react";
 import "./App.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import ContestsListPage from "./pages/ContestsListPage";
 import ContestPage from "./pages/ContestPage";
