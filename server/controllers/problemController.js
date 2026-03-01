@@ -1,0 +1,70 @@
+import ErrorHandler from "../middlewares/error.js";
+import { catchAsyncError } from "../middlewares/catchAsyncError.js";
+import { Problem } from "../models/problemModel.js";
+
+function toSlug(str) {
+  return str.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+}
+
+export const createProblem = catchAsyncError(async (req, res, next) => {
+  const {
+    title,
+    slug,
+    description,
+    difficulty,
+    category,
+    time_limit,
+    memory_limit,
+    input_format,
+    constraints,
+    test_cases,
+    contest_id,
+    order_index,
+  } = req.body;
+  if (!title || !description) {
+    return next(new ErrorHandler("title and description are required.", 400));
+  }
+  const baseSlug = slug || toSlug(title);
+  const order = order_index ?? 0;
+  const finalSlug = contest_id ? `${baseSlug}-${contest_id}-${order}` : baseSlug;
+  const problem = await Problem.create({
+    title,
+    slug: finalSlug,
+    description: description || "",
+    difficulty: difficulty || "MEDIUM",
+    category: category || "",
+    time_limit: time_limit ?? 2,
+    memory_limit: memory_limit ?? 256,
+    input_format: input_format || "",
+    constraints: constraints || "",
+    test_cases: Array.isArray(test_cases) ? test_cases : [],
+    contest_id: contest_id || null,
+    order_index: order,
+  });
+  return res.status(201).json({ success: true, problem });
+});
+
+export const getProblems = catchAsyncError(async (req, res, next) => {
+  const { contest_id } = req.query;
+  const filter = contest_id ? { contest_id } : {};
+  const problems = await Problem.find(filter)
+    .sort({ order_index: 1, created_at: 1 })
+    .select("title slug difficulty category time_limit memory_limit description order_index contest_id")
+    .lean();
+  return res.status(200).json({ success: true, problems });
+});
+
+export const getProblemById = catchAsyncError(async (req, res, next) => {
+  const problem = await Problem.findById(req.params.id).lean();
+  if (!problem) return next(new ErrorHandler("Problem not found.", 404));
+  const { test_cases, ...rest } = problem;
+  const publicTestCases = (test_cases || []).map((tc) => ({
+    input: tc.input,
+    expected_output: tc.expected_output,
+    is_sample: tc.is_sample,
+  }));
+  return res.status(200).json({
+    success: true,
+    problem: { ...rest, test_cases: publicTestCases },
+  });
+});

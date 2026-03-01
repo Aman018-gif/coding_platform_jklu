@@ -1,0 +1,60 @@
+.leaderboard-table-wrap {
+  margin-bottom: 1.5rem;
+}
+
+.leaderboard-table__title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 1rem;
+}
+
+.leaderboard-table {
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.leaderboard-table__table {
+  width: 100%;
+  text-align: left;
+  border-collapse: collapse;
+}
+
+.leaderboard-table__table th,
+.leaderboard-table__table td {
+  padding: 0.75rem 1rem;
+}
+
+.leaderboard-table__table thead tr {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.leaderboard-table__table th {
+  color: var(--color-text-muted);
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.leaderboard-table__table tbody tr {
+  border-bottom: 1px solid rgba(55, 65, 81, 0.5);
+}
+
+.leaderboard-table__table tbody td {
+  color: var(--color-text-muted);
+}
+
+.leaderboard-table__table tbody td:first-child {
+  color: var(--color-text);
+}
+
+.leaderboard-table__solved {
+  color: var(--color-accent) !important;
+}
+
+.leaderboard-table__empty {
+  color: var(--color-text-dim);
+  text-align: center;
+  padding: 1rem !important;
+}

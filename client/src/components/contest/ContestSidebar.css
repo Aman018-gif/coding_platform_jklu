@@ -1,0 +1,56 @@
+.contest-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.contest-sidebar__card {
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+}
+
+.contest-sidebar__label {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.contest-sidebar__label--icon {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.contest-sidebar__rank {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.contest-sidebar__rank-change {
+  font-size: 0.875rem;
+  color: var(--color-success);
+}
+
+.contest-sidebar__status-text {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+
+.contest-sidebar__badges {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.contest-sidebar__badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-border);
+  color: var(--color-accent);
+  font-size: 0.75rem;
+}

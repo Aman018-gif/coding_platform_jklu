@@ -1,0 +1,45 @@
+@import url("https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap");
+
+/* Theme variables - use in component CSS */
+:root {
+  --color-bg-dark: #0f1419;
+  --color-bg-card: #1a2332;
+  --color-border: #374151;
+  --color-text: #ffffff;
+  --color-text-muted: #9ca3af;
+  --color-text-dim: #6b7280;
+  --color-accent: #facc15;
+  --color-accent-dim: rgba(250, 204, 21, 0.2);
+  --color-success: #34d399;
+  --color-error: #f87171;
+  --font-sans: "Ubuntu", system-ui, sans-serif;
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: var(--font-sans);
+}
+
+body {
+  overflow-x: hidden;
+  background-color: var(--color-bg-dark);
+  color: var(--color-text);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: var(--color-bg-card);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #64748b;
+  border-radius: 9999px;
+}

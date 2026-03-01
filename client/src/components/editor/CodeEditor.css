@@ -1,0 +1,30 @@
+.code-editor {
+  width: 100%;
+  padding: 1rem;
+  font-family: ui-monospace, monospace;
+  font-size: 0.875rem;
+  color: #e5e7eb;
+  background-color: #1e1e1e;
+  border: none;
+  border-radius: var(--radius);
+  resize: none;
+  outline: none;
+  min-height: 320px;
+}
+
+.code-editor:focus {
+  outline: none;
+}
+
+.code-editor-wrap {
+  flex: 1;
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.code-editor-wrap .code-editor {
+  flex: 1;
+  min-height: 0;
+}

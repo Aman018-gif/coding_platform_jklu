@@ -1,0 +1,113 @@
+.test-cases-console {
+  background-color: var(--color-bg-card);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+}
+
+.test-cases-console__tabs {
+  display: flex;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.test-cases-console__tab {
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--color-text-dim);
+  cursor: pointer;
+  margin-bottom: -1px;
+}
+
+.test-cases-console__tab:hover {
+  color: var(--color-text-muted);
+}
+
+.test-cases-console__tab--active {
+  color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
+}
+
+.test-cases-console__body {
+  padding: 1rem;
+  flex: 1;
+  overflow: auto;
+  min-height: 180px;
+}
+
+.test-cases-console__row {
+  display: flex;
+  gap: 1rem;
+}
+
+.test-cases-console__case-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 140px;
+}
+
+.test-cases-console__case-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.test-cases-console__case-btn:hover {
+  background: rgba(55, 65, 81, 0.5);
+}
+
+.test-cases-console__case-btn--selected {
+  background-color: var(--color-border);
+  color: var(--color-text);
+}
+
+.test-cases-console__case-details {
+  flex: 1;
+}
+
+.test-cases-console__label {
+  color: var(--color-text-dim);
+  font-size: 0.75rem;
+  margin-bottom: 0.25rem;
+}
+
+.test-cases-console__pre {
+  background: rgba(31, 41, 55, 0.8);
+  padding: 0.75rem;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin-bottom: 0.75rem;
+}
+
+.test-cases-console__result--pass {
+  color: var(--color-success);
+}
+
+.test-cases-console__result--fail {
+  color: var(--color-error);
+}
+
+.test-cases-console__result--muted {
+  color: var(--color-text-dim);
+}
+
+.test-cases-console__console-pre {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  font-family: ui-monospace, monospace;
+}
