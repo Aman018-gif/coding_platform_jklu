@@ -5,6 +5,7 @@ const contestSchema = new mongoose.Schema({
   slug: { type: String, unique: true },
   start_time: { type: Date, required: true },
   end_time: { type: Date, required: true },
+  participants: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   is_active: { type: Boolean, default: true },
   created_at: { type: Date, default: Date.now },
 });

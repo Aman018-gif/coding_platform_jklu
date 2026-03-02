@@ -1,16 +1,19 @@
 import { useState, useEffect, useContext } from 'react';
 import { Terminal, Bell, ChevronDown, User, Settings, LogOut, Trophy } from 'lucide-react';
 import { Context } from '../main';
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import axios from 'axios';
+import { toast } from 'react-toastify';
 
 const navLinks = [
-    { to: "/dashboard", label: "Challenges" },
+    { to: "/challenges", label: "Challenges" },
     { to: "/practice", label: "Practice" },
     { to: "/contests", label: "Contests" },
 ];
 
-export default function Navbar({ onLogoClick, onNavClick, onLogout }) {
-    const { user } = useContext(Context);
+export default function Navbar({ onLogoClick, onNavClick }) {
+    const { user, setUser, setIsAuthenticated } = useContext(Context);
+    const navigate = useNavigate();
     const location = useLocation();
     const [currentDate, setCurrentDate] = useState('');
     const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -61,6 +64,21 @@ export default function Navbar({ onLogoClick, onNavClick, onLogout }) {
         return to === "/dashboard"
             ? location.pathname === "/" || location.pathname === "/dashboard"
             : location.pathname.startsWith(to);
+    };
+
+    const handleLogout = async () => {
+        try {
+            const res = await axios.get("http://localhost:4000/api/v1/user/logout", {
+                withCredentials: true,
+            });
+            toast.success(res.data.message);
+            setUser(null);
+            setIsAuthenticated(false);
+            navigate("/auth");
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Logout failed");
+            console.error(err);
+        }
     };
 
     const notifications = [
@@ -198,7 +216,7 @@ export default function Navbar({ onLogoClick, onNavClick, onLogout }) {
                                 </Link>
                                 <div className="border-t border-slate-200 dark:border-white/10 mt-2 pt-2">
                                     <button
-                                        onClick={() => onLogout && onLogout()}
+                                        onClick={handleLogout}
                                         className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center gap-3"
                                     >
                                         <LogOut size={16} />

@@ -11,6 +11,19 @@ export const getContests = catchAsyncError(async (req, res, next) => {
   return res.status(200).json({ success: true, contests });
 });
 
+export const registerForContest = catchAsyncError(async (req, res, next) => {
+  const contest = await Contest.findById(req.params.id);
+  if (!contest) return next(new ErrorHandler("Contest not found.", 404));
+
+  if (new Date(contest.start_time) < new Date()) {
+    return next(new ErrorHandler("Cannot register for a contest that has already started.", 400));
+  }
+  await Contest.findByIdAndUpdate(req.params.id, {
+    $addToSet: { participants: req.user._id } 
+  });
+  res.status(200).json({ success: true, message: "Registered successfully!" });
+});
+
 export const createContest = catchAsyncError(async (req, res, next) => {
   const { name, slug, start_time, end_time, is_active } = req.body;
   if (!name || !start_time || !end_time) {

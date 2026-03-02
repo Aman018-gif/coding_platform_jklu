@@ -1,7 +1,6 @@
 import React, { useContext, useEffect } from "react";
 import "./App.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import ContestsListPage from "./pages/ContestsListPage";
 import ContestPage from "./pages/ContestPage";
@@ -41,7 +40,7 @@ const App = () => {
     <>
       <Router>
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Dashboard />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/contests" element={<ContestsListPage />} />
           <Route path="/contests/:id" element={<ContestPage />} />
