@@ -14,24 +14,28 @@ const Login = () => {
     handleSubmit,
     formState: { errors },
   } = useForm();
+
   const handleLogin = async (data) => {
-    await axios
-      .post("http://localhost:4000/api/v1/user/login", data, {
-        withCredentials: true,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
-      .then((res) => {
-        toast.success(res.data.message);
-        setIsAuthenticated(true);
-        setUser(res.data.user);
-        navigateTo("/");
-      })
-      .catch((error) => {
-        toast.error(error.response.data.message);
-      });
+    try {
+      const res = await axios.post(
+        "http://localhost:4000/api/v1/user/login",
+        data,
+        {
+          withCredentials: true,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+      toast.success(res.data.message);
+      setIsAuthenticated(true);
+      setUser(res.data.user);
+      navigateTo("/");
+    } catch (error) {
+      const message =
+        error.response?.data?.message || "Login failed. Please try again.";
+      toast.error(message);
+    }
   };
+
   return (
     <>
       <form

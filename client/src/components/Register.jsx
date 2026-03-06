@@ -15,18 +15,22 @@ const Register = () => {
   } = useForm();
 
   const handleRegister = async (data) => {
-    await axios
-      .post("http://localhost:4000/api/v1/user/register", data, {
-        withCredentials: true,
-        headers: { "Content-Type": "application/json" },
-      })
-      .then((res) => {
-        toast.success(res.data.message);
-        navigateTo(`/otp-verification/${data.email}`);
-      })
-      .catch((error) => {
-        toast.error(error.response.data.message);
-      });
+    try {
+      const res = await axios.post(
+        "http://localhost:4000/api/v1/user/register",
+        data,
+        {
+          withCredentials: true,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+      toast.success(res.data.message);
+      navigateTo(`/otp-verification/${data.email}`);
+    } catch (error) {
+      const message =
+        error.response?.data?.message || "Registration failed. Please try again.";
+      toast.error(message);
+    }
   };
 
   return (

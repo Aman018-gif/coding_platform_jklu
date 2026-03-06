@@ -57,7 +57,13 @@ export default function ChallengePage() {
       setRunResult(data.run_result || null);
     } catch (err) {
       const res = err.response?.data;
-      setRunResult(res?.run_result || { status: "Error", stdout: "", stderr: res?.message || err.message });
+      setRunResult(
+        res?.run_result || {
+          status: "Error",
+          stdout: "",
+          stderr: res?.message || err.message,
+        }
+      );
     } finally {
       setRunning(false);
     }
@@ -95,6 +101,10 @@ export default function ChallengePage() {
   const sampleCases = testCases.filter((t) => t.is_sample);
   const displayCases = sampleCases.length ? sampleCases : testCases.slice(0, 3);
   const difficulty = (problem.difficulty || "MEDIUM").toLowerCase();
+
+  // Get the language label from languageId to pass to CodeEditor
+  const selectedLanguageLabel =
+    Object.keys(LANGUAGE_IDS).find((k) => LANGUAGE_IDS[k] === languageId) || "Python 3.8.1";
 
   return (
     <div className="challenge-page">
@@ -147,7 +157,11 @@ export default function ChallengePage() {
                   value={personalNotes}
                   onChange={(e) => setPersonalNotes(e.target.value)}
                 />
-                <button type="button" onClick={() => setPersonalNotes("")} className="challenge-page__notes-clear">
+                <button
+                  type="button"
+                  onClick={() => setPersonalNotes("")}
+                  className="challenge-page__notes-clear"
+                >
                   CLEAR
                 </button>
               </details>
@@ -170,7 +184,11 @@ export default function ChallengePage() {
               </span>
             </div>
             <div className="challenge-page__editor-area">
-              <CodeEditor value={code} onChange={setCode} />
+              <CodeEditor
+                value={code}
+                onChange={setCode}
+                language={selectedLanguageLabel}
+              />
             </div>
           </div>
         </div>

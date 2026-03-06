@@ -3,10 +3,12 @@ import { catchAsyncError } from "../middlewares/catchAsyncError.js";
 import { Problem } from "../models/problemModel.js";
 import { Submission } from "../models/submissionModel.js";
 import { createSubmission, runWithPolling, normalizeStatus } from "../utils/judge0.js";
+import { executeCode } from "../utils/judge0.js";
 
 /**
  * RUN CODE: run against a single (sample) test case; do not save submission.
  */
+
 export const runCode = catchAsyncError(async (req, res, next) => {
   const { source_code, language_id, problem_id, custom_input } = req.body;
   if (!source_code || language_id == null) {
@@ -153,3 +155,5 @@ export const getSubmissions = catchAsyncError(async (req, res, next) => {
 
   return res.status(200).json({ success: true, submissions });
 });
+
+

@@ -1,7 +1,6 @@
-/**
- * Judge0 API client (RapidAPI host).
- * Use JUDGE0_API_URL and JUDGE0_API_KEY in config.env.
- */
+import fetch from "node-fetch";
+
+const JUDGE0_URL = process.env.JUDGE0_API_URL || "http://localhost:2358";
 
 const JUDGE0_STATUS = {
   1: "Processing",
@@ -21,26 +20,8 @@ const JUDGE0_STATUS = {
   15: "Runtime Error",
 };
 
-function getBaseUrl() {
-  const url = process.env.JUDGE0_API_URL || "https://judge0-ce.p.rapidapi.com";
-  return url.replace(/\/$/, "");
-}
-
-function getHeaders() {
-  const key = process.env.JUDGE0_API_KEY;
-  if (!key || key === "your_rapidapi_key_here") {
-    throw new Error("JUDGE0_API_KEY is not set in config.env");
-  }
-  const host = process.env.JUDGE0_RAPIDAPI_HOST || new URL(getBaseUrl()).host;
-  return {
-    "Content-Type": "application/json",
-    "X-RapidAPI-Key": key,
-    "X-RapidAPI-Host": host,
-  };
-}
-
 export async function createSubmission(sourceCode, languageId, stdin, wait = true) {
-  const url = `${getBaseUrl()}/submissions?base64_encoded=false&wait=${wait}`;
+  const url = `${JUDGE0_URL}/submissions?base64_encoded=false&wait=${wait}`;
   const body = {
     source_code: sourceCode,
     language_id: languageId,
@@ -48,7 +29,7 @@ export async function createSubmission(sourceCode, languageId, stdin, wait = tru
   };
   const res = await fetch(url, {
     method: "POST",
-    headers: getHeaders(),
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
   if (!res.ok) {
@@ -59,8 +40,8 @@ export async function createSubmission(sourceCode, languageId, stdin, wait = tru
 }
 
 export async function getSubmission(token) {
-  const url = `${getBaseUrl()}/submissions/${token}?base64_encoded=false`;
-  const res = await fetch(url, { headers: getHeaders() });
+  const url = `${JUDGE0_URL}/submissions/${token}?base64_encoded=false`;
+  const res = await fetch(url, { headers: { "Content-Type": "application/json" } });
   if (!res.ok) throw new Error(`Judge0 get error ${res.status}`);
   return res.json();
 }
@@ -91,3 +72,12 @@ export async function runWithPolling(sourceCode, languageId, stdin, maxWaitMs = 
   }
   throw new Error("Judge0 submission timed out");
 }
+
+export const executeCode = async (source_code, language_id) => {
+  const response = await fetch(`${JUDGE0_URL}/submissions?wait=true`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ source_code, language_id }),
+  });
+  return await response.json();
+};
