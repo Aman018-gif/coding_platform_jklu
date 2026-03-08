@@ -22,7 +22,7 @@ export default function UpcomingContestHero({
 
       <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-[1.5rem]">
         {/* Left content */}
-        <div className="space-y-[0.75rem] max-w-[35rem]">
+        <div className="space-y-[1rem] max-w-[35rem]">
           {/* Status badges */}
           <div className="flex items-center gap-[0.75rem] mb-[0.5rem]">
             <span className="bg-accent-yellow/10 text-accent-yellow text-[0.7rem] font-black px-[0.75rem] py-[0.35rem] rounded-full uppercase tracking-tighter flex items-center gap-[0.4rem]">
@@ -44,14 +44,14 @@ export default function UpcomingContestHero({
           {/* Contest details - Scaled icons/text */}
           <div className="flex flex-wrap gap-[1.25rem] pt-[0.25rem]">
             <div className="flex items-center gap-[0.4rem]">
-              <Calendar className="w-[1.1rem] h-[1.1rem] text-accent-yellow" />
+              <Calendar className="w-[1.25rem] h-[1.25rem] text-accent-yellow" />
               <span className="text-slate-200 font-semibold text-[0.9rem]">
                 {isExpired ? "Starting soon" : `Starts in ${formatTime(false)}`}
               </span>
             </div>
             
             <div className="flex items-center gap-[0.4rem] border-l border-white/10 pl-[1.25rem]">
-              <Blocks className="w-[1.1rem] h-[1.1rem] text-accent-yellow" />
+              <Blocks className="w-[1.25rem] h-[1.25rem] text-accent-yellow" />
               <span className="text-slate-200 font-semibold text-[0.9rem]">
                 {contest.problems?.length || 0}{" "}
                 <span className="text-slate-500 font-normal">Problems</span>

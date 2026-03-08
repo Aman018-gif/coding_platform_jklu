@@ -114,7 +114,7 @@ export default function Dashboard() {
   return (
     <MainLayout onBack={() => navigate("/")}>
       <div className="w-full p-4 md:p-8" style={{ fontFamily: "Inter, sans-serif" }}>
-        <div className="max-w-[1600px] mx-auto space-y-6">
+        <div className="max-w-[1400px] mx-auto space-y-6">
           {/* Hero Carousel Banner */}
           <div
             className="relative rounded-xl overflow-hidden shadow-lg"
@@ -144,7 +144,7 @@ export default function Dashboard() {
                   <>
                     <button
                       onClick={goToPrevious}
-                      className={`absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all duration-300 ${
+                      className={`absolute left-4 top-1/2 -translate-y-1/2 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-black/50 text-white transition-all duration-300 hover:bg-accent-yellow hover:text-black ${
                         isHovering ? "opacity-100" : "opacity-0"
                       }`}
                       aria-label="Previous contest"
@@ -153,7 +153,7 @@ export default function Dashboard() {
                     </button>
                     <button
                       onClick={goToNext}
-                      className={`absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all duration-300 ${
+                      className={`absolute right-4 top-1/2 -translate-y-1/2 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-black/50 text-white transition-all duration-300 hover:bg-accent-yellow hover:text-black ${
                         isHovering ? "opacity-100" : "opacity-0"
                       }`}
                       aria-label="Next contest"
@@ -187,7 +187,7 @@ export default function Dashboard() {
           {/* Middle Section: Attendance & Streak */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Attendance */}
-            <div className="bg-[#1a1a1a] rounded-xl p-6 border border-white/5 flex flex-col items-center shadow-lg">
+            <div className="bg-card-dark rounded-xl p-6 border border-white/5 flex flex-col items-center shadow-lg">
               <div className="w-full flex justify-between items-center mb-8">
                 <h3 className="font-semibold text-sm">Attendance</h3>
                 <button className="text-white/40 hover:text-white transition-colors">
@@ -229,7 +229,7 @@ export default function Dashboard() {
             </div>
 
             {/* Daily Streak */}
-            <div className="bg-[#1a1a1a] rounded-xl p-8 border border-white/5 lg:col-span-2 flex flex-col sm:flex-row items-center gap-10 shadow-lg">
+            <div className="bg-card-dark rounded-xl p-8 border border-white/5 lg:col-span-2 flex flex-col sm:flex-row items-center gap-10 shadow-lg">
               {/* Glowing Icon */}
               <div className="w-32 h-32 rounded-full bg-[#e6d15a]/10 flex items-center justify-center relative shadow-[0_0_50px_rgba(230,209,90,0.15)] shrink-0">
                 <div className="w-24 h-24 bg-[#e6d15a] rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(230,209,90,0.6)]">
@@ -265,7 +265,7 @@ export default function Dashboard() {
           {/* Grid 2: Chart and Notes */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Chart Section */}
-            <div className="bg-[#1a1a1a] rounded-xl p-6 border border-white/5 lg:col-span-2 flex flex-col h-80 shadow-lg">
+            <div className="bg-card-dark rounded-xl p-6 border border-white/5 lg:col-span-2 flex flex-col h-80 shadow-lg">
               <div className="flex justify-between items-start mb-6">
                 <div>
                   <h3 className="font-semibold text-sm mb-1">Questions Solved</h3>
@@ -293,7 +293,7 @@ export default function Dashboard() {
             </div>
 
             {/* Notes Section */}
-            <div className="bg-[#1a1a1a] rounded-xl p-6 border border-white/5 flex flex-col items-center justify-center text-center shadow-lg">
+            <div className="bg-card-dark rounded-xl p-6 border border-white/5 flex flex-col items-center justify-center text-center shadow-lg">
               <div className="w-full flex justify-between items-center mb-auto self-start">
                 <h3 className="font-semibold text-sm">My Notes</h3>
                 <button className="w-6 h-6 bg-white/5 hover:bg-white/10 rounded flex items-center justify-center text-white/60 hover:text-white transition-colors pb-0.5 font-bold">
@@ -313,7 +313,7 @@ export default function Dashboard() {
           </div>
 
           {/* Submissions Table */}
-          <div className="bg-[#1a1a1a] rounded-xl border border-white/5 overflow-hidden shadow-lg">
+          <div className="bg-card-dark rounded-xl border border-white/5 overflow-hidden shadow-lg">
             <div className="p-5 px-6 flex justify-between items-center border-b border-white/5">
               <h3 className="font-semibold text-sm">Recent Submissions</h3>
               <a href="#" className="text-[#e6d15a] text-[11px] font-bold tracking-wide hover:underline underline-offset-4">View All</a>
