@@ -138,7 +138,7 @@ export default function Navbar({ onLogoClick, onNavClick }) {
 
                         {/* Notifications Dropdown */}
                         {isNotificationsOpen && (
-                            <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-white/10 py-2 z-50">
+                            <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-card-dark rounded-lg shadow-lg border border-slate-200 dark:border-white/10 py-2 z-50">
                                 <div className="px-4 py-2 border-b border-slate-200 dark:border-white/10">
                                     <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Notifications</h3>
                                 </div>
@@ -188,7 +188,7 @@ export default function Navbar({ onLogoClick, onNavClick }) {
 
                         {/* Profile Dropdown */}
                         {isProfileOpen && (
-                            <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-white/10 py-2 z-50">
+                            <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-card-dark rounded-lg shadow-lg border border-slate-200 dark:border-white/10 py-2 z-50">
                                 <div className="px-4 py-3 border-b border-slate-200 dark:border-white/10">
                                     <p className="text-sm font-semibold text-slate-900 dark:text-white">{user?.name || 'Guest'}</p>
                                     <p className="text-xs text-brand-yellow font-mono uppercase tracking-wider mt-0.5">Pro Rank #42</p>

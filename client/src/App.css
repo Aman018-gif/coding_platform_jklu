@@ -1,4 +1,4 @@
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -44,7 +44,7 @@
 
 /* Auth Card Styles */
 .auth-card {
-  @apply bg-card-dark/80;
+  @apply bg-card-dark;
   backdrop-filter: blur(12px);
   border: 1px solid var(--color-card-border);
   border-radius: 1rem;
