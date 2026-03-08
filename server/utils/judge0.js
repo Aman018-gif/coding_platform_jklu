@@ -81,3 +81,25 @@ export const executeCode = async (source_code, language_id) => {
   });
   return await response.json();
 };
+
+
+
+export async function createSubmissionWithLimits(sourceCode, languageId, stdin, limits = {}, wait = true) {
+  const url = `${JUDGE0_URL}/submissions?base64_encoded=false&wait=${wait}`;
+  const body = {
+    source_code: sourceCode,
+    language_id: languageId,
+    stdin: stdin || "",
+    ...limits,
+  };
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Judge0 error ${res.status}: ${text}`);
+  }
+  return res.json();
+}
