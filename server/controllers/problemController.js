@@ -1,9 +1,15 @@
 import ErrorHandler from "../middlewares/error.js";
 import { catchAsyncError } from "../middlewares/catchAsyncError.js";
 import { Problem } from "../models/problemModel.js";
+import mongoose from "mongoose";
 
 function toSlug(str) {
-  return str.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+  return str
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "")
+    .replace(/-+/g, "-");
 }
 
 export const createProblem = catchAsyncError(async (req, res, next) => {
@@ -27,6 +33,14 @@ export const createProblem = catchAsyncError(async (req, res, next) => {
   const baseSlug = slug || toSlug(title);
   const order = order_index ?? 0;
   const finalSlug = contest_id ? `${baseSlug}-${contest_id}-${order}` : baseSlug;
+
+  // check kar lete hai yeh slug phele se toh nhi hai 
+
+  const existing = await Problem.findOne({slug:finalSlug});
+  if(existing){
+    return next(new ErrorHandler("Problem slug already exists.",400));
+  }
+
   const problem = await Problem.create({
     title,
     slug: finalSlug,
@@ -46,7 +60,7 @@ export const createProblem = catchAsyncError(async (req, res, next) => {
 
 export const getProblems = catchAsyncError(async (req, res, next) => {
   const { contest_id } = req.query;
-  const filter = contest_id ? { contest_id } : {};
+  const filter = contest_id ? { contest_id:new mongoose.Types.ObjectId(contest_id)} : {};
   const problems = await Problem.find(filter)
     .sort({ order_index: 1, created_at: 1 })
     .select("title slug difficulty category time_limit memory_limit description order_index contest_id")
@@ -58,7 +72,7 @@ export const getProblemById = catchAsyncError(async (req, res, next) => {
   const problem = await Problem.findById(req.params.id).lean();
   if (!problem) return next(new ErrorHandler("Problem not found.", 404));
   const { test_cases, ...rest } = problem;
-  const publicTestCases = (test_cases || []).map((tc) => ({
+  const publicTestCases = (test_cases || []).filter(tc=>tc.is_sample).map((tc) => ({
     input: tc.input,
     expected_output: tc.expected_output,
     is_sample: tc.is_sample,
