@@ -30,9 +30,9 @@ export default function PastContestRow({ contest, currentUser }) {
         {participated ? (
           <div className="flex items-center gap-3">
             <span className="text-white font-black">Participated</span>
-            <span className="text-green-500 text-xs font-bold px-2 py-0.5 bg-green-500/10 rounded">
+            {/* <span className="text-green-500 text-xs font-bold px-2 py-0.5 bg-green-500/10 rounded">
               Completed
-            </span>
+            </span> */}
           </div>
         ) : (
           <div className="text-slate-500 italic text-sm">Did not participate</div>
@@ -41,8 +41,8 @@ export default function PastContestRow({ contest, currentUser }) {
       <td className="px-8 text-right py-3">
         <Link
           to={`/contests/${contest._id}`}
-          className="bg-white/5 hover:bg-white/10 text-white text-xs font-black uppercase tracking-tighter px-4 py-2 rounded-lg transition-colors inline-block"
-        >
+          className="px-2 py-1 bg-white/5 hover:bg-brand-yellow hover:text-black text-white text-xs font-bold rounded-lg border border-white/10 transition-colors uppercase inline-block tracking-tighter"
+        > 
           Upsolve
         </Link>
       </td>

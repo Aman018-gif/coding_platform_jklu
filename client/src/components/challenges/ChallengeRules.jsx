@@ -1,5 +1,4 @@
 import React from "react";
-import "./ChallengeRules.css";
 
 const rules = [
   { title: "No Plagiarism", text: "Your code is checked against 10M+ solutions. Originality is mandatory." },
@@ -9,20 +8,20 @@ const rules = [
 
 export default function ChallengeRules() {
   return (
-    <div className="challenge-rules">
-      <h3 className="challenge-rules__title">
+    <div className="bg-card-dark border border-card-border rounded-lg p-5">
+      <h3 className="text-white font-semibold flex items-center gap-2 mb-4">
         <span>🏆</span>
         Challenge Rules
       </h3>
-      <ul className="challenge-rules__list">
+      <ul className="list-none">
         {rules.map((r) => (
-          <li key={r.title}>
-            <span>{r.title}:</span>{" "}
-            <span>{r.text}</span>
+          <li key={r.title} className="mb-3 text-sm">
+            <span className="text-brand-yellow font-medium">{r.title}:</span>{" "}
+            <span className="text-white/40">{r.text}</span>
           </li>
         ))}
       </ul>
-      <p className="challenge-rules__footer">TRUSTED BY 500K+ DEVS</p>
+      <p className="text-white/60 text-xs mt-4">TRUSTED BY 500K+ DEVS</p>
     </div>
   );
 }

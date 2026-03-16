@@ -17,6 +17,8 @@
 
   /* Secondary/Accent Styles */
   --color-accent-yellow: hsl(51 74% 63%);
+  --color-text: hsl(0 0% 95%);
+  --color-text-muted: hsl(0 0% 70%);
   --color-dark-bg: hsl(0 0% 5%);
   --color-card-bg: hsl(0 0% 9% / 0.8);
 
@@ -30,6 +32,14 @@
 @layer base {
   body {
     @apply bg-bg-dark text-white font-sans antialiased;
+  }
+
+  .text {
+    color: var(--color-text);
+  }
+
+  .text-muted {
+    color: var(--color-text-muted);
   }
 }
 

@@ -2,7 +2,7 @@ import { Clock, Calendar, Trophy } from "lucide-react";
 
 export function NoLiveContest() {
   return (
-    <div className="bg-card-dark border border-white/5 rounded-2xl p-12 text-center">
+    <div className="bg-card-dark border border-white/5 rounded-2xl p-8 text-center">
       <Clock className="w-16 h-16 text-slate-600 mx-auto mb-4" />
       <h3 className="text-xl font-bold text-white mb-2">No Active Contests</h3>
       <p className="text-slate-400 mb-6">

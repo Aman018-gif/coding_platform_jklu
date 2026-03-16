@@ -137,7 +137,6 @@ export default function ContestPage() {
                   problems.map((p, idx) => (
                     <div
                       key={p._id}
-                      className="transition-transform duration-200 hover:scale-[1.01]"
                     >
                       <ContestProblemCard
                         problem={p}

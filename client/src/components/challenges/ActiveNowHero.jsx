@@ -1,25 +1,24 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import "./ActiveNowHero.css";
 
 const difficultyLabel = { EASY: "Easy", MEDIUM: "Medium", HARD: "Hard" };
 
 export default function ActiveNowHero({ contest, loading }) {
   if (loading) {
     return (
-      <div className="active-now-hero active-now-hero--loading">
-        <span className="active-now-hero__loading-text">Loading active challenge...</span>
+      <div className="bg-card-dark border border-card-border rounded-lg p-6 md:p-8 relative overflow-hidden min-h-[200px] flex items-center justify-center">
+        <span className="text-white/60">Loading active challenge...</span>
       </div>
     );
   }
 
   if (!contest) {
     return (
-      <div className="active-now-hero">
-        <div className="active-now-hero__content">
-          <span className="active-now-hero__badge">NO ACTIVE CONTEST</span>
-          <h2 className="active-now-hero__title">No contest running</h2>
-          <p className="active-now-hero__desc">Check back later or browse Practice challenges.</p>
+      <div className="bg-card-dark border border-card-border rounded-lg p-6 md:p-8 relative overflow-hidden min-h-[200px]">
+        <div className="flex-1">
+          <span className="inline-block px-3 py-1 rounded-full bg-brand-yellow-muted text-brand-yellow text-xs font-medium mb-4">NO ACTIVE CONTEST</span>
+          <h2 className="text-2xl font-bold text-white mb-2">No contest running</h2>
+          <p className="text-white/40 text-sm max-w-lg mb-4">Check back later or browse Practice challenges.</p>
         </div>
       </div>
     );
@@ -35,25 +34,25 @@ export default function ActiveNowHero({ contest, loading }) {
   const xp = 500;
 
   return (
-    <div className="active-now-hero">
-      <div className="active-now-hero__bg" />
-      <div className="active-now-hero__inner">
-        <div className="active-now-hero__content">
-          <span className="active-now-hero__badge">ACTIVE NOW</span>
-          <h2 className="active-now-hero__title">{contest.name}</h2>
-          <p className="active-now-hero__desc">
+    <div className="bg-card-dark border border-card-border rounded-lg p-6 md:p-8 relative overflow-hidden min-h-[200px]">
+      <div className="absolute right-0 top-0 w-64 h-64 bg-brand-yellow-muted rounded-full translate-x-1/2 -translate-y-1/2" />
+      <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+        <div className="flex-1">
+          <span className="inline-block px-3 py-1 rounded-full bg-brand-yellow-muted text-brand-yellow text-xs font-medium mb-4">ACTIVE NOW</span>
+          <h2 className="text-2xl font-bold text-white mb-2">{contest.name}</h2>
+          <p className="text-white/40 text-sm max-w-lg mb-4">
             {firstProblem
               ? `Featured: ${firstProblem.title}. Solve problems and climb the leaderboard.`
               : "Solve challenges and compete with the best."}
           </p>
-          <div className="active-now-hero__meta">
-            <span><span className="diamond">◆</span> {firstProblem ? difficultyLabel[firstProblem.difficulty] || "Medium" : "Mixed"} Difficulty</span>
+          <div className="flex flex-wrap items-center gap-4 text-sm text-white/60">
+            <span><span className="text-brand-yellow">◆</span> {firstProblem ? difficultyLabel[firstProblem.difficulty] || "Medium" : "Mixed"} Difficulty</span>
             <span>{timeLeft}</span>
           </div>
         </div>
-        <div className="active-now-hero__actions">
-          <span className="active-now-hero__xp">{xp} POTENTIAL XP</span>
-          <Link to={`/contests/${contest._id}`} className="active-now-hero__button">
+        <div className="flex flex-col items-end gap-3">
+          <span className="text-brand-yellow font-semibold">{xp} POTENTIAL XP</span>
+          <Link to={`/contests/${contest._id}`} className="inline-block px-2.5 py-2.5 bg-brand-yellow text-[--color-bg-dark] font-semibold rounded-sm no-underline transition-colors hover:bg-yellow-300">
             SOLVE NOW #
           </Link>
         </div>

@@ -1,4 +1,4 @@
-import { Calendar, Blocks, CheckCircle, Loader2, ChevronRight } from "lucide-react";
+import { Users, Calendar, Blocks, CheckCircle, Loader2, ChevronRight } from "lucide-react";
 import { useCountdown } from "../../hooks/useCountdown";
 
 export default function UpcomingContestHero({
@@ -59,6 +59,7 @@ export default function UpcomingContestHero({
             </div>
 
             <div className="flex items-center gap-[0.4rem] border-l border-white/10 pl-[1.25rem]">
+            <Users className="w-[1.25rem] h-[1.25rem] text-accent-yellow"/>
               <span className="text-slate-200 font-semibold text-[0.9rem]">
                 {contest.participants?.length || 0}{" "}
                 <span className="text-slate-500 font-normal">Registered</span>
@@ -68,9 +69,9 @@ export default function UpcomingContestHero({
         </div>
 
         {/* Right side - Action Area */}
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0 mr-[1rem]">
           {isRegistered ? (
-            <div className="bg-green-500/5 border border-green-500/20 text-green-500 px-[2rem] py-[1rem] rounded-xl font-black text-[1rem] flex items-center gap-[0.5rem] uppercase tracking-wider">
+            <div className="bg-green-500/5 border border-green-500/20 text-green-500 px-[2rem] py-[1rem] rounded-xl font-black text-[1rem] flex items-center justify-center gap-[0.5rem] uppercase tracking-wider">
               <CheckCircle className="w-[1.25rem] h-[1.25rem]" />
               Registered
             </div>
@@ -79,7 +80,7 @@ export default function UpcomingContestHero({
               onClick={() => onRegister(contest._id)}
               disabled={isRegistering || isExpired}
               /* Standardized Button Scaling */
-              className="bg-accent-yellow hover:scale-105 active:scale-95 transition-all text-black px-[2rem] py-[1rem] rounded-xl font-black text-[1rem] flex items-center gap-[0.5rem] shadow-[0_0_1.5rem_rgba(236,189,84,0.15)] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-accent-yellow hover:scale-105 active:scale-95 transition-all text-black px-[2rem] py-[1rem] rounded-xl font-black text-[1rem] flex items-center justify-center gap-[0.5rem] shadow-[0_0_1.5rem_rgba(236,189,84,0.15)] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isRegistering ? (
                 <>

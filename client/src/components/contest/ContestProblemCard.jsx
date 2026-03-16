@@ -29,9 +29,9 @@ export default function ContestProblemCard({ problem, index, contestId }) {
           <div className="ml-auto">
             <Link
               to={`/problems/${problem._id}${contestId ? `?contest=${contestId}` : ""}`}
-              className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white text-xs font-bold rounded-lg border border-white/10 transition-colors uppercase"
+              className="px-4 py-2 bg-white/5 hover:bg-brand-yellow hover:text-black text-white text-xs font-bold rounded-lg border border-white/10 transition-colors uppercase"
             >
-              Solve Challenge
+              Solve Problem
             </Link>
           </div>
         </div>
