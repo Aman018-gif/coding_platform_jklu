@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
 
-export default function CountdownTimer({ endTime }) {
+export default function CountdownTimer({ endTime, startTime }) {
   const [left, setLeft] = useState({ h: 0, m: 0, s: 0 });
   const [totalMs, setTotalMs] = useState(0);
   const [initialMs, setInitialMs] = useState(0);
 
-  // Calculate remaining time helper to prevent initial 1-second delay
   const calculateTimeLeft = (ms) => ({
     h: Math.floor(ms / (1000 * 60 * 60)),
     m: Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60)),
@@ -14,13 +13,29 @@ export default function CountdownTimer({ endTime }) {
 
   useEffect(() => {
     const end = new Date(endTime).getTime();
-    const total = end - new Date().getTime();
-    const startingMs = Math.max(0, total);
+    const now = new Date().getTime();
+    const remaining = Math.max(0, end - now);
     
-    setInitialMs(startingMs);
-    setTotalMs(startingMs);
-    setLeft(calculateTimeLeft(startingMs));
-  }, [endTime]);
+    if (startTime) {
+      const total = new Date(endTime).getTime() - new Date(startTime).getTime();
+      setInitialMs(total);
+      setTotalMs(remaining);
+      setLeft(calculateTimeLeft(remaining));
+    } else {
+      const storageKey = `countdown_start_${endTime}`;
+      let storedStart = localStorage.getItem(storageKey);
+      
+      if (!storedStart) {
+        storedStart = now.toString();
+        localStorage.setItem(storageKey, storedStart);
+      }
+      
+      const total = end - parseInt(storedStart, 10);
+      setInitialMs(total);
+      setTotalMs(remaining);
+      setLeft(calculateTimeLeft(remaining));
+    }
+  }, [endTime, startTime]);
 
   useEffect(() => {
     if (totalMs <= 0) return;
@@ -33,14 +48,12 @@ export default function CountdownTimer({ endTime }) {
     return () => clearInterval(t);
   }, [endTime, totalMs]);
 
-  // SVG and Progress Calculations
   const pct = initialMs > 0 ? (totalMs / initialMs) * 100 : 0;
   
-  const size = 144; // Matches Tailwind's w-36 (36 * 4px = 144px)
+  const size = 144;
   const strokeWidth = 8;
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
-  // Offset decreases as percentage decreases, revealing the background
   const strokeDashoffset = circumference - (pct / 100) * circumference;
 
   return (

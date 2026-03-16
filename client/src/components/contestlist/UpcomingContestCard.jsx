@@ -1,4 +1,4 @@
-import { Calendar, Blocks, CheckCircle, Loader2 } from "lucide-react";
+import { Users, Calendar, Blocks, CheckCircle, Loader2 } from "lucide-react";
 import { useCountdown } from "../../hooks/useCountdown";
 
 export default function UpcomingContestCard({
@@ -39,21 +39,24 @@ export default function UpcomingContestCard({
         </div>
         <h4 className="text-xl font-bold text-white mb-2">{contest.name}</h4>
         <div className="flex items-center gap-2 mb-6">
-          <span className="text-xs bg-white/5 text-slate-300 px-2 py-1 rounded font-bold uppercase">
-            {contest.participants?.length || 0} Registered
-          </span>
+          <div className="flex items-center gap-1 text-xs bg-white/5 text-slate-300 px-2 py-1 rounded font-bold uppercase">
+            <Users className="w-[1rem] h-[1rem] text-accent-yellow "/>{contest.participants?.length || 0} Registered
+          </div>
+          <div className="flex items-center gap-1 text-xs bg-white/5 text-slate-300 px-2 py-1 rounded font-bold uppercase">
+            <Blocks className="w-[1rem] h-[1rem] text-accent-yellow "/>{contest.problems?.length || 0} Problems
+          </div>
         </div>
       </div>
       <div className="flex items-center justify-between pt-4 border-t border-white/5">
         {isRegistered ? (
-          <span className="flex items-center gap-1.5 text-green-400 text-sm font-black uppercase tracking-wider">
+          <span className="flex items-center gap-1.5 text-green-400 text-xs font-black uppercase tracking-wider">
             <CheckCircle className="w-4 h-4" /> Registered
           </span>
         ) : (
           <button
             onClick={() => onRegister(contest._id)}
             disabled={isRegistering || isExpired}
-            className="text-accent-yellow text-sm font-black uppercase tracking-wider flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed hover:underline"
+            className="px-4 py-2 bg-white/5 hover:bg-brand-yellow hover:text-black text-white text-xs font-bold rounded-lg border border-white/10 transition-colors uppercase"
           >
             {isRegistering ? (
               <>
@@ -66,15 +69,15 @@ export default function UpcomingContestCard({
             )}
           </button>
         )}
-        <div className="flex items-center gap-2 whitespace-nowrap bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
-          <span className="text-xs font-bold text-accent-yellow uppercase tracking-widest">
+        <div className="flex items-center gap-2 whitespace-nowrap">
+          <span className="text-xs font-bold text-accent-yellow">
             {new Date(contest.start_time).toLocaleDateString("en-US", {
               month: "short",
               day: "numeric",
             })}
           </span>
           <span className="text-slate-600 text-[10px]">•</span>
-          <span className="text-xs text-slate-400 font-medium uppercase tracking-tight">
+          <span className="text-xs text-slate-400 font-medium">
             {new Date(contest.start_time).toLocaleTimeString("en-US", {
               hour: "numeric",
               minute: "2-digit",

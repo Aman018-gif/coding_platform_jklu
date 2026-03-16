@@ -32,7 +32,7 @@ export default function PracticePage() {
     <div className="practice-page">
       <Navbar />
       <main className="practice-page__main">
-        <h1 className="practice-page__title">Practice</h1>
+        <h1 className="practice-page__title text">Practice</h1>
         {loading ? (
           <p className="practice-page__empty">Loading...</p>
         ) : problems.length === 0 ? (
