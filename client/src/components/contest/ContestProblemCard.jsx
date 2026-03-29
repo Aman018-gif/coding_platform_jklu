@@ -18,7 +18,7 @@ export default function ContestProblemCard({ problem, index, contestId }) {
           <p className="text-brand-yellow text-xs font-bold tracking-widest mb-1 uppercase">{problem.category || "Algorithms"}</p>
           <h3 className="text-2xl font-bold text-white group-hover:text-brand-yellow transition-colors">PROBLEM {index + 1}: {problem.title}</h3>
         </div>
-        <p className="text-slate-400 text-sm max-w-2xl">{problem.description}</p>
+        {/* <p className="text-slate-400 text-sm max-w-2xl">{problem.description}</p> */}
         <div className="flex items-center gap-6 mt-2">
           <div className="flex items-center gap-2">
             <span className="text-xs text-slate-500 font-medium tracking-wide uppercase">Time: {problem.time_limit || 1}s</span>

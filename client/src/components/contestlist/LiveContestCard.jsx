@@ -49,7 +49,7 @@ export default function LiveContestCard({ contest, currentUser }) {
           {isRegistered ? (
             <Link
               to={`/contests/${contest._id}`}
-              className="bg-accent-yellow hover:scale-105 transition-transform text-black px-[2.5rem] py-[1.25rem] rounded-xl font-black text-[1.25rem] flex items-center gap-[0.75rem] shadow-[0_0_1.875rem_rgba(236,189,84,0.2)]"
+              className="bg-accent-yellow hover:scale-105 transition-transform text-black px-[2rem] py-[1rem] rounded-xl font-black text-[1rem] flex items-center gap-[0.75rem] shadow-[0_0_1.875rem_rgba(236,189,84,0.2)]"
             >
               ENTER CONTEST
               <ChevronRight className="w-[1.5rem] h-[1.5rem]" />

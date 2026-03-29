@@ -1,8 +1,28 @@
 import React, { useEffect, useState } from "react";
+import { Check, X } from "lucide-react";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
 
-export default function Submissions() {
+const StatusBadge = (status)=>{
+  if (status === "Accepted"){
+    return (
+      <span className="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-green-500/10 text-green-400">
+        <Check size="15" strokeWidth={3} />
+        
+      </span>
+    );
+  }
+  if (status == "Wrong Answer"){
+    return (
+      <span className="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-red-500/10 text-red-400">
+        <X size="15" strokeWidth={3} />
+      </span>
+    );
+  }
+  return <span className="text-slate-300 font-medium">{status}</span>
+}
+
+export default function Submissions({ isWidget = false, limit }) {
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -27,7 +47,11 @@ export default function Submissions() {
         }
 
         const data = await res.json();
-        setSubmissions(data.submissions || []);
+        let fetchedData = (data.submissions || []);
+        if (limit) {
+          fetchedData = fetchedData.slice(0, limit);
+        }
+        setSubmissions(fetchedData);
       } catch (err) {
         console.error("Error fetching submissions:", err);
         setError("Failed to load submissions.");
@@ -37,12 +61,13 @@ export default function Submissions() {
     };
 
     fetchSubmissions();
-  }, []);
+  }, [limit]);
 
   return (
-    <div className="mb-6">
-      <h2 className="text-xl font-bold text-white mb-4">Recent Submissions</h2>
-
+    <div className={isWidget ? "" : "mb-6"}>
+      {!isWidget && (
+        <h2 className="text-xl font-bold text-white mb-4">Recent Submissions</h2>
+      )}
       {error && (
         <div className="text-red-400 bg-red-400/10 p-3 rounded-lg mb-4">
           {error}
@@ -53,49 +78,45 @@ export default function Submissions() {
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b border-white/5">
-              <th className="text-slate-400 font-medium text-sm px-8 py-3">Status</th>
               <th className="text-slate-400 font-medium text-sm px-8 py-3">Problem</th>
+              <th className="text-slate-400 font-medium text-sm px-8 py-3">Status</th>
               <th className="text-slate-400 font-medium text-sm px-8 py-3">Language</th>
-              <th className="text-slate-400 font-medium text-sm text-center px-8 py-3">Time</th>
-              <th className="text-slate-400 font-medium text-sm text-center px-8 py-3">Memory</th>
+              {!isWidget && (
+                <>
+                  <th className="text-slate-400 font-medium text-sm text-center px-8 py-3">Time</th>
+                  <th className="text-slate-400 font-medium text-sm text-center px-8 py-3">Memory</th>
+                </>
+              )}
               <th className="text-slate-400 font-medium text-sm px-8 py-3">Submitted At</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={6} className="text-slate-500 text-center p-4">
-                  Loading submissions...
+                <td colSpan={isWidget ? 4 : 6} className="text-slate-500 text-center p-4">
+                  Loading...
                 </td>
               </tr>
             ) : submissions.length === 0 ? (
               <tr>
-                <td colSpan={6} className="text-slate-500 text-center p-4">
+                <td colSpan={isWidget ? 4 : 6} className="text-slate-500 text-center p-4">
                   No submissions found.
                 </td>
               </tr>
             ) : (
               submissions.map((s, index) => (
-                <tr key={s._id || index} className="group hover:bg-white/[0.02] transition-colors border-b border-white/10">
-                  <td className="px-8 py-3">
-                    <span className={`font-bold ${
-                      s.status === "Accepted" ? "text-green-400" :
-                      s.status === "Wrong Answer" ? "text-red-400" :
-                      s.status === "Time Limit Exceeded" ? "text-yellow-400" :
-                      s.status === "Compilation Error" ? "text-orange-400" :
-                      "text-white"
-                    }`}>
-                      {s.status}
-                    </span>
-                  </td>
-                  <td className="text-white font-bold px-8 py-3">{s.problem_id?.title || "Problem"}</td>
-                  <td className="text-slate-300 text-sm px-8 py-3">{s.language || ""}</td>
-                  <td className="text-slate-400 text-center px-8 py-3">{s.execution_time ? `${s.execution_time}s` : "N/A"}</td>
-                  <td className="text-slate-400 text-center px-8 py-3">{s.memory ? `${s.memory} KB` : "N/A"}</td>
-                  <td className="text-slate-400 px-8 py-3">
-                    {s.submitted_at
-                      ? new Date(s.submitted_at).toLocaleString()
-                      : "N/A"}
+                <tr key={s._id || index} className="border-b border-white/10 hover:bg-white/[0.02]">
+                  <td className="px-8 py-3 text-white">{s.problem_id?.title || "Problem"}</td>
+                  <td className="px-8 py-3 text-white">{StatusBadge(s.status)}</td>
+                  <td className="px-8 py-3 text-slate-300">{s.language || ""}</td>
+                  {!isWidget && (
+                    <>
+                      <td className="px-8 py-3 text-slate-400 text-center">{s.execution_time ? `${s.execution_time}s` : "N/A"}</td>
+                      <td className="px-8 py-3 text-slate-400 text-center">{s.memory ? `${s.memory} KB` : "N/A"}</td>
+                    </>
+                  )}
+                  <td className="px-8 py-3 text-slate-400">
+                    {s.submitted_at ? new Date(s.submitted_at).toLocaleString() : "N/A"}
                   </td>
                 </tr>
               ))

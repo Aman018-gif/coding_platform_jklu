@@ -70,19 +70,19 @@ export default function ContestArchivePage() {
 
   return (
     <MainLayout>
-      <div className="max-w-7xl mx-auto px-6 lg:px-20 py-10 space-y-8">
+      <main className="max-w-5xl mx-auto px-4 py-8 space-y-8">
         
         {/* Navigation & Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <Link 
               to="/contests" 
-              className="text-slate-400 hover:text-white text-sm font-medium flex items-center gap-1 mb-4 w-fit transition-colors"
+              className="text-muted hover:text-white text-sm font-medium flex items-center gap-1 mb-4 w-fit transition-colors"
             >
               <ChevronLeft size={16} /> Back to Contests
             </Link>
-            <h1 className="text-3xl font-bold text-white">Contest Archive</h1>
-            <p className="text-slate-400 mt-2">
+            <h1 className="text-3xl font-bold text-white tracking-tight">Contest Archive</h1>
+            <p className="text-sm text-muted mt-1">
               Review past problems, view final standings, and analyze your performance.
             </p>
           </div>
@@ -95,7 +95,7 @@ export default function ContestArchivePage() {
               placeholder="Search past contests..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-card-dark border border-white/10 rounded-lg pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-brand-yellow/50 transition-colors"
+              className="w-full bg-card-dark border border-card-border rounded-lg pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-muted focus:outline-none focus:border-brand-yellow/50 transition-colors"
             />
           </div>
         </div>
@@ -112,19 +112,19 @@ export default function ContestArchivePage() {
           {loading ? (
             <TableSkeleton />
           ) : filteredContests.length > 0 ? (
-            <div className="bg-card-dark border border-white/5 rounded-2xl overflow-hidden flex flex-col">
+            <div className="bg-card-dark border border-card-border rounded-xl overflow-hidden flex flex-col">
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-white/5 text-slate-400 text-xs uppercase tracking-widest font-black">
-                      <th className="px-8 py-4">Contest Name</th>
-                      <th className="px-8 py-4">Date</th>
-                      <th className="px-8 py-4 text-center">Final Standings</th>
-                      <th className="px-8 py-4">Personal Result</th>
-                      <th className="px-8 py-4 text-right">Action</th>
+                    <tr className="border-b border-card-border">
+                      <th className="px-5 py-3 text-xs font-semibold text-muted uppercase tracking-wider">Contest Name</th>
+                      <th className="px-5 py-3 text-xs font-semibold text-muted uppercase tracking-wider">Date</th>
+                      <th className="px-5 py-3 text-xs font-semibold text-muted uppercase tracking-wider text-center">Final Standings</th>
+                      <th className="px-5 py-3 text-xs font-semibold text-muted uppercase tracking-wider">Personal Result</th>
+                      <th className="px-5 py-3 text-xs font-semibold text-muted uppercase tracking-wider text-right">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/5">
+                  <tbody className="divide-y divide-card-border">
                     {/* Render current slice of contests instead of the full filtered array */}
                     {currentContests.map((contest) => (
                       <PastContestRow
@@ -138,8 +138,8 @@ export default function ContestArchivePage() {
               </div>
               
               {/* Pagination Controls Footer */}
-              <div className="px-8 py-4 border-t border-white/5 bg-white/[0.02] flex items-center justify-between mt-auto">
-                <span className="text-xs text-slate-500">
+              <div className="px-5 py-4 border-t border-card-border bg-white/[0.02] flex items-center justify-between mt-auto">
+                <span className="text-xs text-muted">
                   Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredContests.length)} of {filteredContests.length} entries
                 </span>
                 
@@ -149,19 +149,19 @@ export default function ContestArchivePage() {
                     <button
                       onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                       disabled={currentPage === 1}
-                      className="p-1.5 rounded-md border border-white/10 text-slate-400 hover:text-white hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="p-1.5 rounded-md border border-card-border text-muted hover:text-white hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       <ChevronLeft size={16} />
                     </button>
                     
-                    <span className="text-xs font-medium text-slate-300 px-2">
+                    <span className="text-xs font-medium text-white px-2">
                       Page {currentPage} of {totalPages}
                     </span>
                     
                     <button
                       onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                       disabled={currentPage === totalPages}
-                      className="p-1.5 rounded-md border border-white/10 text-slate-400 hover:text-white hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="p-1.5 rounded-md border border-card-border text-muted hover:text-white hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       <ChevronRight size={16} />
                     </button>
@@ -170,11 +170,11 @@ export default function ContestArchivePage() {
               </div>
             </div>
           ) : (
-            <div className="bg-card-dark border border-white/5 rounded-2xl p-12 text-center">
+            <div className="bg-card-dark border border-card-border rounded-xl p-12 text-center">
               {searchQuery ? (
                 <>
                   <p className="text-white font-medium mb-1">No matches found</p>
-                  <p className="text-slate-500 text-sm">We couldn't find any past contests matching "{searchQuery}"</p>
+                  <p className="text-muted text-sm">We couldn&apos;t find any past contests matching &quot;{searchQuery}&quot;</p>
                 </>
               ) : (
                 <NoPastContests />
@@ -182,7 +182,7 @@ export default function ContestArchivePage() {
             </div>
           )}
         </section>
-      </div>
+      </main>
     </MainLayout>
   );
 }

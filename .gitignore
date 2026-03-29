@@ -5,3 +5,5 @@ server/node_modules/
 .env
 config.env
 server/config.env
+
+*.md

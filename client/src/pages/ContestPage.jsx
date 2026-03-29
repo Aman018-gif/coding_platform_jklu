@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useContext } from "react";
 import { useParams, Navigate, useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import { Context } from "../main";
 import api from "../api/client";
 import MainLayout from "../layout/MainLayout";
@@ -90,14 +91,22 @@ export default function ContestPage() {
       }}
     >
       <main className="relative z-10 max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        {/* Back Button */}
+        <button
+          onClick={() => navigate("/contests")}
+          className="flex items-center gap-2 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors mb-2 w-fit"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Contests
+        </button>
+
         <header className="mb-8">
-          <h1 className="text-4xl font-sans  font-extrabold text-white tracking-tight uppercase">
+          <h1 className="text-4xl font-sans font-extrabold text-white tracking-tight uppercase">
             {contest.name}
           </h1>
         </header>
 
         {/* Tab Navigation */}
-
         <div className="flex gap-6 mb-8 border-b border-card-border">
           {["problems", "leaderboard", "submissions"].map((t) => (
             <button
@@ -114,7 +123,6 @@ export default function ContestPage() {
         </div>
 
         {/* Dynamic Content Sections */}
-
         <section className="mt-4">
           {tab === "leaderboard" && (
             <div className="glass-card rounded-xl p-6">
@@ -131,13 +139,10 @@ export default function ContestPage() {
           {tab === "problems" && (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
               {/* Problem List */}
-
               <div className="lg:col-span-8 flex flex-col gap-4">
                 {problems.length > 0 ? (
                   problems.map((p, idx) => (
-                    <div
-                      key={p._id}
-                    >
+                    <div key={p._id}>
                       <ContestProblemCard
                         problem={p}
                         index={idx}
@@ -153,7 +158,6 @@ export default function ContestPage() {
               </div>
 
               {/* Sidebar Info */}
-
               <aside className="lg:col-span-4 sticky top-24">
                 <div className="rounded-xl">
                   <ContestSidebar

@@ -1,4 +1,4 @@
-import { Users, Calendar, Blocks, CheckCircle, Loader2 } from "lucide-react";
+import { Users, Calendar, Blocks, CheckCircle2, Loader2 } from "lucide-react";
 import { useCountdown } from "../../hooks/useCountdown";
 
 export default function UpcomingContestCard({
@@ -17,11 +17,11 @@ export default function UpcomingContestCard({
   const IconComponent = contest.problems?.length > 0 ? Blocks : Calendar;
 
   return (
-    <div className="bg-card-dark border border-white/5 rounded-2xl p-6 flex flex-col justify-between hover:-translate-y-1 transition-all hover:border-accent-yellow/30">
+    <div className="bg-card-dark border border-white/5 rounded-2xl p-6 flex flex-col justify-between hover:border-accent-yellow/30">
       <div>
         <div className="flex justify-between items-start mb-4">
           <div className="bg-white/5 rounded-lg p-2 text-accent-yellow flex items-center justify-center">
-            <IconComponent className="w-5 h-5" />
+            <IconComponent className="w-4 h-4" />
           </div>
           <div className="flex items-center h-7">
             <span className="text-slate-500 text-xs font-bold uppercase">
@@ -50,7 +50,7 @@ export default function UpcomingContestCard({
       <div className="flex items-center justify-between pt-4 border-t border-white/5">
         {isRegistered ? (
           <span className="flex items-center gap-1.5 text-green-400 text-xs font-black uppercase tracking-wider">
-            <CheckCircle className="w-4 h-4" /> Registered
+            <CheckCircle2 className="w-4 h-4" /> Registered
           </span>
         ) : (
           <button
