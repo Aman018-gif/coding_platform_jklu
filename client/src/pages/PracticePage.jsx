@@ -7,9 +7,9 @@ import { TableSkeleton } from "../components/contestlist/Skeletons";
 import { Play, Code2, ChevronLeft, ChevronRight } from "lucide-react";
 
 const difficultyClasses = {
-  easy:   "bg-emerald-400/20 text-emerald-400 border border-emerald-400/20",
+  easy: "bg-emerald-400/20 text-emerald-400 border border-emerald-400/20",
   medium: "bg-yellow-400/10 text-yellow-400 border border-yellow-400/20",
-  hard:   "bg-red-400/20 text-red-400 border border-red-400/20",
+  hard: "bg-red-400/20 text-red-400 border border-red-400/20",
 };
 
 export default function PracticePage() {
@@ -20,7 +20,7 @@ export default function PracticePage() {
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = 20;
 
   useEffect(() => {
     const fetchProblems = async () => {
@@ -148,7 +148,7 @@ export default function PracticePage() {
               <span className="text-xs text-muted">
                 Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, problems.length)} of {problems.length} entries
               </span>
-              
+
               {/* Only show buttons if there's more than 1 page */}
               {totalPages > 1 && (
                 <div className="flex items-center gap-2">
@@ -159,11 +159,11 @@ export default function PracticePage() {
                   >
                     <ChevronLeft size={16} />
                   </button>
-                  
+
                   <span className="text-xs font-medium text-white px-2">
                     Page {currentPage} of {totalPages}
                   </span>
-                  
+
                   <button
                     onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                     disabled={currentPage === totalPages}
