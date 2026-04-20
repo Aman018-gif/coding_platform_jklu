@@ -18,6 +18,7 @@ import { Context } from "./main";
 import OtpVerification from "./pages/OtpVerification";
 import CreateContestPage from "./pages/CreateContestPage";
 import TADashboard from "./pages/TADashboard";
+import ProfilePage from "./pages/ProfilePage";
 
 const API_BASE = "http://localhost:4000/api/v1";
 
@@ -46,6 +47,7 @@ const App = () => {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/profile" element={<ProfilePage />} />
           <Route path="/contests" element={<ContestsListPage />} />
           <Route path="/contests/:id" element={<ContestPage />} />
           <Route path="/problems/:id" element={<ProblemPage />} />

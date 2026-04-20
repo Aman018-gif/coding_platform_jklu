@@ -6,10 +6,27 @@ import { Submission } from "../models/submissionModel.js";
 import { User } from "../models/userModel.js";
 import mongoose from "mongoose";
 import { ContestLeaderboard } from "../models/leaderboardModel.js";
+import { calculateWeeklyBadges } from "../utils/badgeCalculator.js";  // NEW
 
 export const getContests = catchAsyncError(async (req, res, next) => {
   const contests = await Contest.find().sort({ start_time: -1 }).lean();
   return res.status(200).json({ success: true, contests });
+});
+
+export const getContestSubmissions = catchAsyncError(async (req, res, next) => {
+  const contest_id = req.params.id;
+  const filter = { contest_id };
+
+  // Uncomment if you want students to only see their OWN submissions in the contest
+  // const user_id = req.user._id;
+  // filter.user_id = user_id;
+
+  const submissions = await Submission.find(filter)
+    .sort({ submitted_at: -1 })
+    .populate("problem_id", "title")
+    .lean();
+    
+  return res.status(200).json({ success: true, submissions });
 });
 
 export const registerForContest = catchAsyncError(async (req, res, next) => {
@@ -19,9 +36,16 @@ export const registerForContest = catchAsyncError(async (req, res, next) => {
   if (new Date(contest.start_time) < new Date()) {
     return next(new ErrorHandler("Cannot register for a contest that has already started.", 400));
   }
+
   await Contest.findByIdAndUpdate(req.params.id, {
     $addToSet: { participants: req.user._id },
   });
+
+  // ── Increment contest_attendance.registered for this user ──────────────
+  await User.findByIdAndUpdate(req.user._id, {
+    $inc: { "contest_attendance.registered": 1 },
+  });
+
   res.status(200).json({ success: true, message: "Registered successfully!" });
 });
 
@@ -76,10 +100,65 @@ export const getActiveContest = catchAsyncError(async (req, res, next) => {
   return res.status(200).json({ success: true, contest: { ...contest, problems } });
 });
 
+// ── NEW: End a contest (Admin only) ─────────────────────────────────────────
+// POST /api/v1/contest/:id/end
+// Marks the contest as finished and triggers weekly badge calculation.
+export const endContest = catchAsyncError(async (req, res, next) => {
+  const contest = await Contest.findById(req.params.id);
+  if (!contest) return next(new ErrorHandler("Contest not found.", 404));
+
+  if (!contest.is_active) {
+    return next(new ErrorHandler("Contest is already ended.", 400));
+  }
+
+  // Mark contest as inactive / finished
+  contest.is_active = false;
+  await contest.save();
+
+  // Update contests_participated count for all users who made ≥1 submission
+  // and increment their contest_attendance.submitted
+  const participantIds = await Submission.distinct("user_id", {
+    contest_id: contest._id,
+  });
+
+  if (participantIds.length > 0) {
+    await User.updateMany(
+      { _id: { $in: participantIds } },
+      {
+        $inc: {
+          contests_participated: 1,
+          "contest_attendance.submitted": 1,
+        },
+      }
+    );
+  }
+
+  // Award contest points to leaderboard participants
+  // Points formula: (solved_count * 100) - penalty deduction
+  const leaderboardRows = await ContestLeaderboard.find({
+    contest_id: contest._id,
+  }).lean();
+
+  for (const row of leaderboardRows) {
+    const points = Math.max(0, row.solved_count * 100 - Math.floor(row.penalty_minutes));
+    await User.findByIdAndUpdate(row.user_id, {
+      $inc: { contest_points: points, total_solved: row.solved_count },
+    });
+  }
+
+  // Trigger weekly badge calculation (async, non-blocking)
+  calculateWeeklyBadges(contest._id).catch((err) =>
+    console.error("[endContest] Badge calculation failed:", err)
+  );
+
+  return res.status(200).json({
+    success: true,
+    message: `Contest '${contest.name}' ended. Badges and points are being calculated.`,
+  });
+});
+
 export const getLeaderboard = catchAsyncError(async (req, res, next) => {
   const { id: contest_id } = req.params;
-
-  // Convert to ObjectId once and reuse everywhere
   const contestObjectId = new mongoose.Types.ObjectId(contest_id);
 
   const hasNewLeaderboard = await ContestLeaderboard.exists({
@@ -108,12 +187,7 @@ export const getLeaderboard = catchAsyncError(async (req, res, next) => {
 
   // Fallback to aggregation from submissions
   const accepted = await Submission.aggregate([
-    {
-      $match: {
-        contest_id: contestObjectId,
-        status: "Accepted",
-      },
-    },
+    { $match: { contest_id: contestObjectId, status: "Accepted" } },
     {
       $group: {
         _id: { user: "$user_id", problem: "$problem_id" },

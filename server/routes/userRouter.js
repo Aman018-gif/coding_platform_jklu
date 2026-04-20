@@ -10,6 +10,7 @@ import {
   upgradeToTeacher,
 } from "../controllers/userController.js";
 import { isAuthenticated } from "../middlewares/auth.js";
+import { getProfile, updateProfile } from "../controllers/userController.js";
 
 const router = express.Router();
 
@@ -20,6 +21,8 @@ router.get("/logout", isAuthenticated, logout);
 router.get("/me", isAuthenticated, getUser);
 router.post("/password/forgot", forgotPassword);
 router.put("/password/reset/:token", resetPassword);
+router.get("/profile", isAuthenticated, getProfile);
+router.put("/profile", isAuthenticated, updateProfile);
 
 // temporary endpoint
 router.post("/upgrade-to-teacher", isAuthenticated, upgradeToTeacher);

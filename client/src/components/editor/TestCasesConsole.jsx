@@ -1,6 +1,6 @@
 import React from "react";
 
-const tabs = ["TEST CASES", "CUSTOM TEST CASE", "CONSOLE"];
+const tabs = ["TEST CASES", "CUSTOM TEST CASE", "CONSOLE", "SUBMISSIONS"];
 
 const normalize = (str) => String(str || "").replace(/\r\n/g, "\n").trimEnd();
 
@@ -212,6 +212,15 @@ export default function TestCasesConsole({
                 Run or submit your code to see output here.
               </p>
             )}
+          </div>
+        )}
+
+        {/* ── SUBMISSIONS ── */}
+        {activeTab === "SUBMISSIONS" && (
+          <div className="flex flex-col h-full relative -m-4">
+             <div className="absolute inset-0 overflow-auto p-4">
+               {/* Note: This tab relies on the parent ProblemPage to render the history */}
+             </div>
           </div>
         )}
       </div>
