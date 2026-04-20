@@ -12,7 +12,7 @@ import classRouter from "./routes/classRouter.js";
 import labRouter from "./routes/labRouter.js";
 import notificationRouter from "./routes/notificationRouter.js";
 import { removeUnverifiedAccounts } from "./automation/removeUnverifiedAccounts.js";
-
+import { startBadgeCron } from "./automation/badgeCron.js";
 export const app = express();
 config({ path: "./config.env" });
 
@@ -39,5 +39,6 @@ app.use("/api/v1/notifications", notificationRouter);
 
 removeUnverifiedAccounts();
 connection();
-
+startBadgeCron();
+ 
 app.use(errorMiddleware);
