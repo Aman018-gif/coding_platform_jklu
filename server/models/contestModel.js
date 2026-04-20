@@ -8,6 +8,8 @@ const contestSchema = new mongoose.Schema({
   participants: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   is_active: { type: Boolean, default: true },
   created_at: { type: Date, default: Date.now },
+  created_by: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  problems: [{ type: mongoose.Schema.Types.ObjectId, ref: "Problem" }],
 });
 
 contestSchema.index({ start_time: 1, end_time: 1 });

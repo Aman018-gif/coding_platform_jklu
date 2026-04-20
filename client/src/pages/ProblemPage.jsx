@@ -1,12 +1,11 @@
-import React, { useEffect, useState, useRef } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
-import { useContext } from "react";
+import React, { useEffect, useState, useRef, useContext } from "react";
+import { useParams, useSearchParams, Navigate } from "react-router-dom";
 import { Context } from "../main";
-import { Navigate } from "react-router-dom";
 import api from "../api/client";
 import Navbar from "../layout/Navbar";
 import CodeEditor, { LANGUAGE_IDS } from "../components/editor/CodeEditor";
 import TestCasesConsole from "../components/editor/TestCasesConsole";
+import { NotepadText,NotebookPen } from "lucide-react";
 
 const DEFAULT_CODE = {
   71: `# Write your solution here`,
@@ -21,13 +20,13 @@ function getSavedCode(problemId, languageId) {
   try { return localStorage.getItem(`code_${problemId}_${languageId}`) || null; } catch { return null; }
 }
 function saveCode(problemId, languageId, code) {
-  try { localStorage.setItem(`code_${problemId}_${languageId}`, code); } catch {}
+  try { localStorage.setItem(`code_${problemId}_${languageId}`, code); } catch { }
 }
 
-const DIFF_COLOR = {
-  easy:   { bg: "rgba(52,211,153,0.15)", color: "#34d399" },
-  medium: { bg: "rgba(251,191,36,0.15)", color: "#fbbf24" },
-  hard:   { bg: "rgba(248,113,113,0.15)", color: "#f87171" },
+const difficultyClasses = {
+  easy: "bg-emerald-400/15 text-emerald-400",
+  medium: "bg-yellow-400/15 text-yellow-400",
+  hard: "bg-red-400/15 text-red-400",
 };
 
 export default function ChallengePage() {
@@ -127,12 +126,12 @@ export default function ChallengePage() {
 
   if (!isAuthenticated) return <Navigate to="/auth" />;
   if (loading && !problem) return (
-    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--color-bg-dark)", color: "var(--color-text-muted)" }}>
-      Loading...
+    <div className="min-h-screen flex items-center justify-center bg-bg-dark text-muted">
+      <div className="animate-pulse font-display">Loading...</div>
     </div>
   );
   if (!problem) return (
-    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--color-bg-dark)", color: "var(--color-text-muted)" }}>
+    <div className="min-h-screen flex items-center justify-center bg-bg-dark text-muted">
       Problem not found.
     </div>
   );
@@ -141,47 +140,48 @@ export default function ChallengePage() {
   const sampleCases = testCases.filter((t) => t.is_sample);
   const displayCases = sampleCases.length ? sampleCases : testCases.slice(0, 3);
   const difficulty = (problem.difficulty || "MEDIUM").toLowerCase();
-  const diffStyle = DIFF_COLOR[difficulty] || DIFF_COLOR.medium;
+  const diffStyle = difficultyClasses[difficulty] || difficultyClasses.medium;
 
   const selectedLanguageLabel =
     Object.keys(LANGUAGE_IDS).find((k) => LANGUAGE_IDS[k] === languageId) || "Python 3.8.1";
 
   return (
-    <div style={{ height: "100vh", background: "var(--color-bg-dark)", color: "var(--color-text)", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+    <div className="h-screen bg-bg-dark text-white font-sans flex flex-col overflow-hidden">
       <Navbar />
 
       {/* ── Main split: left description | right editor ── */}
-      <div style={{ flex: 1, display: "flex", minHeight: 0 }}>
+      <div className="flex flex-1 min-h-0">
 
         {/* LEFT PANEL — problem description */}
-        <div style={{ width: "40%", display: "flex", flexDirection: "column", borderRight: "1px solid var(--color-border)", minHeight: 0 }}>
+        <div className="w-[40%] flex flex-col border-r border-card-border min-h-0">
 
           {/* breadcrumb + title */}
-          <div style={{ padding: "0.6rem 1rem 0", fontSize: "0.72rem", color: "var(--color-text-dim)", letterSpacing: "0.05em", flexShrink: 0 }}>
+          <div className="px-4 pt-2.5 text-[0.72rem] text-muted tracking-wider shrink-0">
             {contestId ? `JKLU_DAA_CONTEST / PROBLEM` : "PROBLEM"}
           </div>
-          <div style={{ padding: "0.25rem 1rem 0.75rem", borderBottom: "1px solid var(--color-border)", flexShrink: 0 }}>
-            <h2 style={{ fontWeight: 700, fontSize: "1.2rem", margin: "0 0 0.5rem" }}>{problem.title}</h2>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-              <span style={{ padding: "0.15rem 0.55rem", borderRadius: "4px", fontSize: "0.72rem", fontWeight: 600, background: diffStyle.bg, color: diffStyle.color }}>
+          <div className="px-4 pt-1 pb-3 border-b border-card-border shrink-0">
+            <h2 className="font-bold text-xl mb-2">{problem.title}</h2>
+            <div className="flex items-center gap-3">
+              <span className={`px-2 py-0.5 rounded text-[0.72rem] font-semibold ${diffStyle}`}>
                 {problem.difficulty}
               </span>
             </div>
           </div>
 
           {/* scrollable content */}
-          <div style={{ flex: 1, overflowY: "auto", padding: "1rem", minHeight: 0 }}>
-            <p style={{ color: "var(--color-text-muted)", fontSize: "0.875rem", marginBottom: "1rem", lineHeight: 1.65 }}>
+          <div className="flex-1 overflow-y-auto p-4 min-h-0">
+            <p className="text-muted text-sm mb-4 leading-relaxed">
               {problem.description}
             </p>
 
             {/* Input format */}
             {problem.input_format && (
-              <div style={{ background: "rgba(31,41,55,0.5)", borderRadius: "6px", padding: "0.75rem", marginBottom: "1rem" }}>
-                <div style={{ color: "var(--color-accent)", fontWeight: 600, fontSize: "0.78rem", marginBottom: "0.4rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                  <span>📋</span> INPUT FORMAT
+              <div className="bg-white/[0.03] rounded-md p-3 mb-4 border border-card-border">
+                <div className="text-muted font-semibold text-xs mb-1.5 flex items-center gap-2">
+                  <NotepadText size={14} />
+                  INPUT FORMAT
                 </div>
-                <pre style={{ color: "var(--color-text-muted)", fontSize: "0.78rem", whiteSpace: "pre-wrap", margin: 0 }}>
+                <pre className="text-muted text-xs whitespace-pre-wrap m-0">
                   {problem.input_format}
                 </pre>
               </div>
@@ -189,26 +189,26 @@ export default function ChallengePage() {
 
             {/* Example */}
             {displayCases.length > 0 && (
-              <div style={{ marginBottom: "1rem" }}>
-                <div style={{ color: "var(--color-accent)", fontWeight: 600, fontSize: "0.82rem", marginBottom: "0.5rem" }}>
+              <div className="mb-4">
+                <div className="text-muted font-semibold text-sm mb-2">
                   EXAMPLE 1
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+                <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <div style={{ color: "var(--color-text-dim)", fontSize: "0.7rem", marginBottom: "0.25rem" }}>INPUT</div>
-                    <pre style={{ background: "rgba(31,41,55,0.8)", padding: "0.5rem", borderRadius: "6px", color: "var(--color-text-muted)", fontSize: "0.78rem", whiteSpace: "pre-wrap", margin: 0 }}>
+                    <div className="text-muted text-[0.7rem] mb-1">INPUT</div>
+                    <pre className="bg-white/[0.04] p-2 rounded-md text-muted text-xs whitespace-pre-wrap m-0 border border-card-border">
                       {displayCases[0].input}
                     </pre>
                   </div>
                   <div>
-                    <div style={{ color: "var(--color-text-dim)", fontSize: "0.7rem", marginBottom: "0.25rem" }}>OUTPUT</div>
-                    <pre style={{ background: "rgba(31,41,55,0.8)", padding: "0.5rem", borderRadius: "6px", color: "var(--color-text-muted)", fontSize: "0.78rem", whiteSpace: "pre-wrap", margin: 0 }}>
+                    <div className="text-muted text-[0.7rem] mb-1">OUTPUT</div>
+                    <pre className="bg-white/[0.04] p-2 rounded-md text-muted text-xs whitespace-pre-wrap m-0 border border-card-border">
                       {displayCases[0].expected_output}
                     </pre>
                   </div>
                 </div>
                 {displayCases[0].explanation && (
-                  <p style={{ fontSize: "0.75rem", color: "var(--color-text-dim)", marginTop: "0.5rem" }}>
+                  <p className="text-xs text-muted mt-2">
                     {displayCases[0].explanation}
                   </p>
                 )}
@@ -217,32 +217,33 @@ export default function ChallengePage() {
 
             {/* Constraints */}
             {problem.constraints && (
-              <div style={{ background: "rgba(31,41,55,0.5)", borderRadius: "6px", padding: "0.75rem", marginBottom: "1rem" }}>
-                <div style={{ color: "var(--color-accent)", fontWeight: 600, fontSize: "0.78rem", marginBottom: "0.4rem" }}>
+              <div className="bg-white/[0.03] rounded-md p-3 mb-4 border border-card-border">
+                <div className="text-muted font-semibold text-xs mb-1.5">
                   CONSTRAINTS
                 </div>
-                <pre style={{ color: "var(--color-text-muted)", fontSize: "0.78rem", whiteSpace: "pre-wrap", margin: 0 }}>
+                <pre className="text-muted text-xs whitespace-pre-wrap m-0">
                   {problem.constraints}
                 </pre>
               </div>
             )}
 
             {/* Personal notes */}
-            <div style={{ marginBottom: "1rem" }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.4rem" }}>
-                <span style={{ color: "var(--color-text-dim)", fontSize: "0.72rem", display: "flex", alignItems: "center", gap: "0.3rem" }}>
-                  ✏️ PERSONAL NOTES
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-muted text-[0.72rem] flex items-center gap-2">
+                  <NotebookPen size={14} />
+                  PERSONAL NOTES
                 </span>
                 <button
                   type="button"
                   onClick={() => setPersonalNotes("")}
-                  style={{ color: "var(--color-text-dim)", fontSize: "0.72rem", background: "none", border: "none", cursor: "pointer", padding: 0 }}
+                  className="text-muted text-[0.72rem] bg-transparent border-none cursor-pointer p-0 hover:text-white transition-colors"
                 >
                   CLEAR
                 </button>
               </div>
               <textarea
-                style={{ width: "100%", background: "transparent", color: "var(--color-text-muted)", fontSize: "0.875rem", resize: "none", minHeight: "70px", border: "none", outline: "none" }}
+                className="w-full bg-transparent text-muted text-sm resize-none min-h-[70px] border-none outline-none placeholder:text-muted/50"
                 placeholder="Draft your logic or keep track of edge cases here..."
                 value={personalNotes}
                 onChange={(e) => setPersonalNotes(e.target.value)}
@@ -252,37 +253,37 @@ export default function ChallengePage() {
         </div>
 
         {/* RIGHT PANEL — editor + console + buttons */}
-        <div style={{ width: "60%", display: "flex", flexDirection: "column", minHeight: 0, overflow: "hidden" }}>
+        <div className="w-[60%] flex flex-col min-h-0 overflow-hidden">
 
           {/* Editor toolbar */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.4rem 1rem", borderBottom: "1px solid var(--color-border)", background: "var(--color-bg-dark)", flexShrink: 0 }}>
+          <div className="flex items-center justify-between px-4 py-1.5 border-b border-card-border bg-bg-dark shrink-0">
             <select
               value={languageId}
               onChange={handleLanguageChange}
-              style={{ background: "var(--color-border)", color: "var(--color-text-muted)", borderRadius: "4px", padding: "0.3rem 0.6rem", fontSize: "0.85rem", border: "none", outline: "none", cursor: "pointer" }}
+              className="bg-card-dark text-muted rounded px-2.5 py-1.5 text-sm border border-card-border outline-none cursor-pointer hover:border-brand-yellow/30 transition-colors"
             >
               {Object.entries(LANGUAGE_IDS).map(([label, lid]) => (
                 <option key={lid} value={lid}>{label}</option>
               ))}
             </select>
-            <span style={{ fontSize: "0.72rem", color: "var(--color-text-dim)", display: "flex", alignItems: "center", gap: "0.3rem" }}>
-              <span style={{ width: 7, height: 7, borderRadius: "50%", background: autoSaveStatus === "saved" ? "#4caf50" : "#ff9800", display: "inline-block" }} />
+            <span className="text-[0.72rem] text-muted flex items-center gap-1.5">
+              <span className={`w-1.5 h-1.5 rounded-full inline-block ${autoSaveStatus === "saved" ? "bg-emerald-500" : "bg-amber-500"}`} />
               {autoSaveStatus === "saved" ? "AUTOSAVED" : "SAVING..."}
             </span>
           </div>
 
           {/* Monaco editor — position:relative wrapper so Monaco can fill it */}
-          <div style={{ flex: 1, minHeight: 0, position: "relative" }}>
-            <div style={{ position: "absolute", inset: 0 }}>
+          <div className="flex-1 min-h-0 relative">
+            <div className="absolute inset-0">
               <CodeEditor value={code} onChange={handleCodeChange} language={selectedLanguageLabel} />
             </div>
           </div>
 
           {/* TestCasesConsole — fixed 260px, scrolls internally */}
-          <div style={{ height: "260px", flexShrink: 0, display: "flex", flexDirection: "column", borderTop: "1px solid var(--color-border)" }}>
+          <div className="h-[260px] shrink-0 flex flex-col border-t border-card-border">
 
             {/* Console body — scrollable */}
-            <div style={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
+            <div className="flex-1 min-h-0 overflow-hidden">
               <TestCasesConsole
                 testCases={displayCases.length ? displayCases : [{ input: "", expected_output: "" }]}
                 runResult={
@@ -304,12 +305,12 @@ export default function ChallengePage() {
             </div>
 
             {/* Action buttons */}
-            <div style={{ flexShrink: 0, display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "0.75rem", padding: "0.6rem 1rem", borderTop: "1px solid var(--color-border)", background: "var(--color-bg-dark)" }}>
+            <div className="shrink-0 flex justify-end items-center gap-3 px-4 py-2.5 border-t border-card-border bg-bg-dark">
               <button
                 type="button"
                 onClick={() => handleRun()}
                 disabled={running}
-                style={{ padding: "0.45rem 1.25rem", borderRadius: "4px", fontWeight: 500, border: "none", cursor: running ? "not-allowed" : "pointer", background: "#2d333b", color: "#cdd9e5", opacity: running ? 0.5 : 1, fontSize: "0.875rem" }}
+                className="px-5 py-2 rounded font-medium border border-card-border cursor-pointer bg-card-dark text-muted text-sm hover:bg-white/10 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {running ? "Running..." : "RUN CODE"}
               </button>
@@ -317,7 +318,7 @@ export default function ChallengePage() {
                 type="button"
                 onClick={handleSubmit}
                 disabled={submitting}
-                style={{ padding: "0.45rem 1.25rem", borderRadius: "4px", fontWeight: 600, border: "none", cursor: submitting ? "not-allowed" : "pointer", background: "#fbbf24", color: "#0d1117", opacity: submitting ? 0.5 : 1, fontSize: "0.875rem" }}
+                className="px-5 py-2 rounded font-semibold border-none cursor-pointer bg-brand-yellow text-black text-sm hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {submitting ? "Submitting..." : "SUBMIT"}
               </button>

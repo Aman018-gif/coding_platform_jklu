@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from "react";
 import { useParams, Navigate, useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { Context } from "../main";
 import api from "../api/client";
 import MainLayout from "../layout/MainLayout";
@@ -96,7 +96,7 @@ export default function ContestPage() {
           onClick={() => navigate("/contests")}
           className="flex items-center gap-2 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors mb-2 w-fit"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ChevronLeft className="w-4 h-4" />
           Back to Contests
         </button>
 

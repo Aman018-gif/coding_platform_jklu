@@ -1,6 +1,6 @@
 export default function AttendanceAndStreak() {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
       {/* Attendance */}
       <div className="bg-card-dark rounded-xl p-6 border border-white/5 flex flex-col items-center shadow-lg">
         <div className="w-full flex justify-between items-center mb-8">

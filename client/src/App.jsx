@@ -16,6 +16,8 @@ import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import { Context } from "./main";
 import OtpVerification from "./pages/OtpVerification";
+import CreateContestPage from "./pages/CreateContestPage";
+import TADashboard from "./pages/TADashboard";
 
 const API_BASE = "http://localhost:4000/api/v1";
 
@@ -57,6 +59,8 @@ const App = () => {
           <Route path="/password/forgot" element={<ForgotPassword />} />
           <Route path="/password/reset/:token" element={<ResetPassword />} />
           <Route path="/contests/archive" element={<ContestArchivePage />} />
+          <Route path="/ta-dashboard" element={<TADashboard />} />
+          <Route path="/create-contest" element={<CreateContestPage />} />
         </Routes>
         <ToastContainer theme="colored" />
       </Router>
