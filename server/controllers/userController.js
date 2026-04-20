@@ -318,6 +318,28 @@ export const getStudentsByGroup = catchAsyncError(async (req, res, next) => {
   });
 });
 
+export const searchUsers = catchAsyncError(async (req, res, next) => {
+  const { role, query } = req.query;
+  
+  const filter = {};
+  if (role) {
+    filter.role = role;
+  }
+  if (query) {
+    filter.$or = [
+      { name: { $regex: query, $options: 'i' } },
+      { email: { $regex: query, $options: 'i' } },
+    ];
+  }
+  
+  const users = await User.find(filter).select("name email role").limit(20).lean();
+  
+  res.status(200).json({
+    success: true,
+    users,
+  });
+});
+
 // Temporary endpoint for testing purposes
 export const upgradeToTeacher = catchAsyncError(async (req, res, next) => {
   const user = req.user;

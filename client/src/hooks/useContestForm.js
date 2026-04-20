@@ -366,7 +366,7 @@ export function useContestForm(currentUser) {
         errors,
         showDeleteModal,
         isLoadingParticipants,
-        setForm,
+setForm,
         setProblems,
         setModerators,
         setParticipantsList,

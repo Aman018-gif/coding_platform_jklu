@@ -63,7 +63,16 @@ export const createContest = catchAsyncError(async (req, res, next) => {
   // Format and secure the moderators array
   let validModeratorIds = [];
   if (Array.isArray(moderators)) {
-    validModeratorIds = [...moderators];
+    for (const mod of moderators) {
+      if (mongoose.Types.ObjectId.isValid(mod)) {
+        validModeratorIds.push(new mongoose.Types.ObjectId(mod));
+      } else if (typeof mod === 'string' && mod.includes('@')) {
+        const user = await User.findOne({ email: mod }).select('_id');
+        if (user) {
+          validModeratorIds.push(user._id);
+        }
+      }
+    }
   }
   
   // Ensure the creator is always included as a moderator
@@ -137,7 +146,16 @@ export const updateContest = catchAsyncError(async (req, res, next) => {
 
   let validModeratorIds = [];
   if (Array.isArray(moderators)) {
-    validModeratorIds = [...moderators];
+    for (const mod of moderators) {
+      if (mongoose.Types.ObjectId.isValid(mod)) {
+        validModeratorIds.push(new mongoose.Types.ObjectId(mod));
+      } else if (typeof mod === 'string' && mod.includes('@')) {
+        const user = await User.findOne({ email: mod }).select('_id');
+        if (user) {
+          validModeratorIds.push(user._id);
+        }
+      }
+    }
   }
   const stringifiedMods = validModeratorIds.map(id => id.toString());
   if (!stringifiedMods.includes(req.user._id.toString())) {
@@ -166,12 +184,12 @@ export const deleteContest = catchAsyncError(async (req, res, next) => {
 });
 
 export const getContestById = catchAsyncError(async (req, res, next) => {
-  const contest = await Contest.findById(req.params.id).lean();
+  const contest = await Contest.findById(req.params.id).populate('moderators', 'name email').lean();
   if (!contest) return next(new ErrorHandler("Contest not found.", 404));
   
   if (contest.isPublic === false && req.user) {
     const isOwner = contest.created_by?.toString() === req.user._id.toString();
-    const isModerator = contest.moderators.some(m => m.toString() === req.user._id.toString());
+    const isModerator = contest.moderators.some(m => m._id.toString() === req.user._id.toString());
     if (!isOwner && !isModerator) {
       return next(new ErrorHandler("Not authorized to view this contest.", 403));
     }

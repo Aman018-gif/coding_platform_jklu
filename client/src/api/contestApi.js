@@ -35,6 +35,11 @@ export const fetchContestBySlug = async (slug) => {
     return data.contest;
 };
 
+export const fetchContestById = async (id) => {
+    const { data } = await api.get(`/contests/${id}`);
+    return data.contest;
+};
+
 export const addProblemsToContest = async (id, problemIds) => {
     const { data } = await api.post(`/contests/${id}/problems`, { problemIds });
     return data.contest;

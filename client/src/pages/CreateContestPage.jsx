@@ -15,7 +15,7 @@ import ProblemsTab from "../components/CreateContest/Tabs/ProblemsTab";
 import ModeratorsTab from "../components/CreateContest/Tabs/ModeratorsTab";
 import ParticipantsTab from "../components/CreateContest/Tabs/ParticipantsTab";
 import { useContestForm, TABS } from "../hooks/useContestForm";
-import { fetchContestBySlug, fetchMyContests } from "../api/contestApi";
+import { fetchContestBySlug, fetchMyContests, fetchContestById } from "../api/contestApi";
 
 export default function CreateContestPage() {
   const { user: currentUser } = useContext(Context);
@@ -87,8 +87,7 @@ export default function CreateContestPage() {
     const loadContestForEdit = async () => {
       setIsLoadingEdit(true);
       try {
-        const contests = await fetchMyContests();
-        const contest = contests.find(c => c._id === editId || c.slug === editId);
+        const contest = await fetchContestById(editId);
         if (contest) {
           const startDate = new Date(contest.start_time);
           const endDate = new Date(contest.end_time);
@@ -110,6 +109,15 @@ export default function CreateContestPage() {
           setSavedSlug(contest.slug);
           setSavedContestId(contest._id);
           setContestCreated(true);
+          if (contest.moderators && contest.moderators.length > 0) {
+            const mods = contest.moderators.map(m => ({
+              name: m.name || m.username || 'Unknown',
+              email: m.email || '',
+              role: m._id === contest.created_by?.toString() ? 'Owner' : 'Moderator',
+              isCurrentUser: m._id === currentUser?._id,
+            }));
+            setModerators(mods);
+          }
           if (contest.problems && contest.problems.length > 0) {
             setProblems(contest.problems.map((p, i) => ({
               id: String.fromCharCode(65 + i),
@@ -122,7 +130,7 @@ export default function CreateContestPage() {
             })));
           }
         } else {
-          console.log('Contest not found in my contests');
+          console.log('Contest not found');
         }
       } catch (err) {
         console.error('Failed to load contest for edit:', err);
@@ -426,7 +434,7 @@ export default function CreateContestPage() {
               ))}
             </div>
 
-            <div className="p-6 md:p-8 bg-card-dark">
+            <div className="p-6 md:p-8 bg-card-dark overflow-y-auto">
               {activeTab === "Landing Page" && (
                 <LandingPageTab
                   bannerImageURL={form.bannerImageURL}
