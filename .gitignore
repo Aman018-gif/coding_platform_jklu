@@ -7,3 +7,6 @@ config.env
 server/config.env
 
 *.md
+
+dist/
+client/dist/

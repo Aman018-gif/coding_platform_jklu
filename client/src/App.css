@@ -12,6 +12,7 @@
   /* Background & Card Colors */
   --color-bg-dark: hsl(0 0% 5%);
   --color-card-dark: hsl(0 0% 10%);
+  --color-bg-light: hsl(0 0% 15%);
   --color-card-border: hsl(0 0% 100% / 0.05);
   --color-background-light: hsl(0 0% 100%);
 

@@ -79,7 +79,7 @@ export default function PracticePage() {
               <thead>
                 <tr className="border-b border-card-border">
                   <th className="px-5 py-3 text-xs font-semibold text-muted uppercase tracking-wider w-12 text-center">#</th>
-                  <th className="px-5 py-3 text-xs font-semibold text-muted uppercase tracking-wider">Title</th>
+                  <th className="px-5 py-3 text-xs font-semibold text-muted uppercase tracking-wider w-80">Title</th>
                   <th className="px-5 py-3 text-xs font-semibold text-muted uppercase tracking-wider w-28">Difficulty</th>
                   <th className="px-5 py-3 text-xs font-semibold text-muted uppercase tracking-wider w-32">Category</th>
                   <th className="px-5 py-3 text-xs font-semibold text-muted uppercase tracking-wider w-20 text-right">Solve</th>
@@ -103,11 +103,11 @@ export default function PracticePage() {
                         <p className="text-sm font-semibold text-white group-hover:text-yellow-400 transition-colors">
                           {p.title}
                         </p>
-                        {p.description && (
+                        {/* {p.description && (
                           <p className="text-xs text-muted line-clamp-1 mt-0.5">
                             {p.description}
                           </p>
-                        )}
+                        )} */}
                       </td>
 
                       {/* Difficulty badge */}

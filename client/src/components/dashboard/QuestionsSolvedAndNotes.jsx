@@ -1,6 +1,6 @@
 export default function QuestionsSolvedAndNotes() {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
       {/* Chart Section */}
       <div className="bg-card-dark rounded-xl p-6 border border-white/5 lg:col-span-2 flex flex-col h-80 shadow-lg">
         <div className="flex justify-between items-start mb-6">

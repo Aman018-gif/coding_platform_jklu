@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useMemo, useContext } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, UserCog } from "lucide-react";
 import { Context } from "../main";
 import api from "../api/client";
 import { toast } from "react-toastify";
@@ -116,11 +116,35 @@ export default function Dashboard() {
 
   return (
     <MainLayout onBack={() => navigate("/")}>
-      <div className="w-full p-4 md:p-8" style={{ fontFamily: "Inter, sans-serif" }}>
-        <div className="max-w-[1400px] mx-auto space-y-6">
+      <div className="max-w-7xl mx-auto px-6 lg:px-20 py-10 space-y-4">
+
+          {/* --- HEADER SECTION --- */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">
+                Welcome, {user?.name || "User"}!
+              </h1>
+              <p className="text-sm text-slate-400 mt-1">
+                Ready to continue your coding journey?
+              </p>
+            </div>
+            
+            {/* TA Dashboard Toggle Button — only visible to TA users */}
+            {user?.role === "TA" && (
+              <button
+                onClick={() => navigate("/ta-dashboard")}
+                className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg bg-white/5 text-white border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all group"
+              >
+                <UserCog size={18} className="text-slate-400 group-hover:text-white transition-colors" />
+                Switch to TA Dashboard
+              </button>
+            )}
+          </div>
+          {/* -------------------------- */}
+
           {/* Hero Carousel Banner */}
           <div
-            className="relative rounded-xl overflow-hidden shadow-lg"
+            className="relative rounded-xl overflow-hidden shadow-lg mt-2"
             onMouseEnter={() => setIsHovering(true)}
             onMouseLeave={() => setIsHovering(false)}
           >
@@ -195,7 +219,6 @@ export default function Dashboard() {
 
           {/* Submissions Table */}
           <RecentSubmissions />
-        </div>
       </div>
     </MainLayout>
   );
