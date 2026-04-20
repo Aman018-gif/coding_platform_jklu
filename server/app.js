@@ -10,6 +10,7 @@ import problemRouter from "./routes/problemRouter.js";
 import submissionRouter from "./routes/submissionRouter.js";
 import classRouter from "./routes/classRouter.js";
 import labRouter from "./routes/labRouter.js";
+import notificationRouter from "./routes/notificationRouter.js";
 import { removeUnverifiedAccounts } from "./automation/removeUnverifiedAccounts.js";
 
 export const app = express();
@@ -34,6 +35,7 @@ app.use("/api/v1/problems", problemRouter);
 app.use("/api/v1/submissions", submissionRouter);
 app.use("/api/v1/classes", classRouter);
 app.use("/api/v1/labs", labRouter);
+app.use("/api/v1/notifications", notificationRouter);
 
 removeUnverifiedAccounts();
 connection();

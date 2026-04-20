@@ -5,6 +5,7 @@ import { Submission } from "../models/submissionModel.js";
 import { Contest } from "../models/contestModel.js";
 import { ContestLeaderboard } from "../models/leaderboardModel.js";
 import { createSubmission, createSubmissionWithLimits, normalizeStatus } from "../utils/judge0.js";
+import { createNotification } from "./notificationController.js";
 
 function normalizeOutput(out) {
   return String(out || "")
@@ -253,6 +254,15 @@ export const submitCode = catchAsyncError(async (req, res, next) => {
     language,
     status: finalStatus,
     submitted_at: submission.submission_time,
+  });
+
+  // Notify User
+  await createNotification({
+    recipient: user_id,
+    type: "SUBMISSION",
+    title: "Submission Evaluated",
+    message: finalStatus === "Accepted" ? `Your submission for problem passed all test cases.` : `Your submission was graded as ${finalStatus}.`,
+    link: `/submissions/${submission._id}`
   });
 
   return res.status(200).json({

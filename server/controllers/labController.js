@@ -2,6 +2,7 @@ import { catchAsyncError } from "../middlewares/catchAsyncError.js";
 import ErrorHandler from "../middlewares/error.js";
 import { Lab } from "../models/labModel.js";
 import { Class } from "../models/classModel.js";
+import { createNotification } from "./notificationController.js";
 
 export const createLab = catchAsyncError(async (req, res, next) => {
   const { class_id, title, questions, deadline, isVisible } = req.body;
@@ -27,6 +28,20 @@ export const createLab = catchAsyncError(async (req, res, next) => {
     isVisible: isVisible !== undefined ? isVisible : true,
     createdBy: req.user._id,
   });
+
+  if (newLab.isVisible) {
+    // Notify all students in the class
+    classDetails.students.forEach(async (studentId) => {
+      await createNotification({
+        recipient: studentId,
+        sender: req.user._id,
+        type: "LAB",
+        title: "New Lab Assigned",
+        message: `A new lab "${title}" has been added to your class.`,
+        link: `/class/${class_id}/labs/${newLab._id}`
+      });
+    });
+  }
 
   res.status(201).json({
     success: true,

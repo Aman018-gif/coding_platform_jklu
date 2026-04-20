@@ -18,6 +18,47 @@ export default function Navbar({ onLogoClick, onNavClick }) {
     const [currentDate, setCurrentDate] = useState('');
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+    const [notifications, setNotifications] = useState([]);
+    const [unreadCount, setUnreadCount] = useState(0);
+
+    const fetchNotifications = async () => {
+        if (!user) return;
+        try {
+            const { data } = await axios.get("http://localhost:4000/api/v1/notifications", { withCredentials: true });
+            setNotifications(data.notifications || []);
+            setUnreadCount((data.notifications || []).filter(n => !n.isRead).length);
+        } catch (error) {
+            console.error("Error fetching notifications:", error);
+        }
+    };
+
+    useEffect(() => {
+        fetchNotifications();
+        const interval = setInterval(fetchNotifications, 30000); // 30 seconds
+        return () => clearInterval(interval);
+    }, [user]);
+
+    const handleMarkAsRead = async (id, link) => {
+        try {
+            await axios.put(`http://localhost:4000/api/v1/notifications/${id}/read`, {}, { withCredentials: true });
+            setNotifications(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n));
+            setUnreadCount(prev => Math.max(0, prev - 1));
+            setIsNotificationsOpen(false);
+            if (link) navigate(link);
+        } catch (error) {
+            console.error("Error marking as read:", error);
+        }
+    };
+
+    const handleMarkAllAsRead = async () => {
+        try {
+            await axios.put("http://localhost:4000/api/v1/notifications/read-all", {}, { withCredentials: true });
+            setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+            setUnreadCount(0);
+        } catch (error) {
+            console.error("Error marking all as read:", error);
+        }
+    };
 
     // Update date dynamically
     useEffect(() => {
@@ -81,11 +122,7 @@ export default function Navbar({ onLogoClick, onNavClick }) {
         }
     };
 
-    const notifications = [
-        { id: 1, text: 'New contest starting in 1 hour', time: '5 min ago', unread: true },
-        { id: 2, text: 'You solved "Array Sum" problem', time: '2 hours ago', unread: true },
-        { id: 3, text: 'Weekly leaderboard updated', time: '1 day ago', unread: false },
-    ];
+
 
     return (
         <header className="h-16 border-b border-slate-200 dark:border-white/10 bg-background-light dark:bg-bg-dark sticky top-0 z-50 w-full">
@@ -125,7 +162,7 @@ export default function Navbar({ onLogoClick, onNavClick }) {
                 </div>
 
                 {/* Right Section: Notifications, Date, Profile */}
-                <div className="flex items-center gap-4">
+                <div className="flex items-end gap-4">
                     {/* Notifications */}
                     <div className="notifications-dropdown relative">
                         <button
@@ -133,32 +170,42 @@ export default function Navbar({ onLogoClick, onNavClick }) {
                             className="p-2 text-slate-500 dark:text-white/50 hover:bg-slate-100 dark:hover:bg-white/5 rounded-full transition-colors relative"
                         >
                             <Bell size={20} />
-                            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-brand-yellow rounded-full border-2 border-background-light dark:border-bg-dark"></span>
+                            {unreadCount > 0 && (
+                                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-brand-yellow rounded-full border-2 border-background-light dark:border-bg-dark"></span>
+                            )}
                         </button>
 
                         {/* Notifications Dropdown */}
                         {isNotificationsOpen && (
-                            <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-card-dark rounded-lg shadow-lg border border-slate-200 dark:border-white/10 py-2 z-50">
-                                <div className="px-4 py-2 border-b border-slate-200 dark:border-white/10">
+                            <div className="absolute right-0 mt-2 w-80 max-h-[400px] overflow-y-auto bg-white dark:bg-card-dark rounded-lg shadow-lg border border-slate-200 dark:border-white/10 py-2 z-50">
+                                <div className="px-4 py-2 border-b border-slate-200 dark:border-white/10 flex justify-between items-center">
                                     <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Notifications</h3>
+                                    {unreadCount > 0 && (
+                                        <button onClick={handleMarkAllAsRead} className="text-xs text-brand-yellow hover:underline">Mark all read</button>
+                                    )}
                                 </div>
-                                {notifications.map((notif) => (
-                                    <button
-                                        key={notif.id}
-                                        className="w-full px-4 py-3 text-left hover:bg-slate-50 dark:hover:bg-white/5 transition-colors flex items-start gap-3"
-                                    >
-                                        <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${notif.unread ? 'bg-brand-yellow' : 'bg-slate-300 dark:bg-white/20'}`}></div>
-                                        <div className="flex-1">
-                                            <p className="text-sm text-slate-700 dark:text-white/80">{notif.text}</p>
-                                            <p className="text-xs text-slate-400 mt-1">{notif.time}</p>
-                                        </div>
-                                    </button>
-                                ))}
-                                <div className="px-4 py-2 border-t border-slate-200 dark:border-white/10">
-                                    <button className="text-xs text-brand-yellow hover:underline">View all notifications</button>
-                                </div>
+                                {notifications.length === 0 ? (
+                                    <div className="px-4 py-4 text-center text-sm text-slate-500">No notifications.</div>
+                                ) : (
+                                    notifications.map((notif) => (
+                                        <button
+                                            key={notif._id}
+                                            onClick={() => handleMarkAsRead(notif._id, notif.link)}
+                                            className={`w-full px-4 py-3 text-left hover:bg-slate-50 dark:hover:bg-white/5 transition-colors flex items-start gap-3 ${!notif.isRead ? 'bg-slate-50/50 dark:bg-white/5' : ''}`}
+                                        >
+                                            <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${!notif.isRead ? 'bg-brand-yellow' : 'bg-slate-300 dark:bg-white/20'}`}></div>
+                                            <div className="flex-1">
+                                                <p className={`text-sm ${!notif.isRead ? 'text-slate-900 dark:text-white font-medium' : 'text-slate-700 dark:text-white/80'}`}>{notif.title}</p>
+                                                <p className="text-xs text-slate-500 dark:text-white/60 mt-0.5">{notif.message}</p>
+                                            </div>
+                                        </button>
+                                    ))
+                                )}
                             </div>
                         )}
+
+                            </div>
+                        
                     </div>
 
                     {/* Current Date */}
@@ -227,7 +274,7 @@ export default function Navbar({ onLogoClick, onNavClick }) {
                         )}
                     </div>
                 </div>
-            </div>
+        
         </header>
     );
 }
