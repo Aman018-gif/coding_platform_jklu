@@ -1,9 +1,9 @@
 import React from "react";
 
-export default function LeaderboardTable({ leaderboard }) {
+export default function LeaderboardTable({ leaderboard, hideHeader = false }) {
   return (
     <div className="mb-6">
-      <h2 className="text-xl font-bold text-white mb-4">Leaderboard</h2>
+      {!hideHeader && <h2 className="text-xl font-bold text-white mb-4">Leaderboard</h2>}
       <div className="bg-card-dark border border-white/5 rounded-lg overflow-hidden">
         <table className="w-full text-left border-collapse">
           <thead>

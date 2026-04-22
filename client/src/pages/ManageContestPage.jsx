@@ -1,10 +1,11 @@
 import { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { ChevronLeft, BarChart3, Settings, Users, FileCode, Clock, AlertTriangle, CheckCircle, XCircle } from "lucide-react";
+import { ChevronLeft, BarChart3, Settings, Users, FileCode, Clock, AlertTriangle, CheckCircle, XCircle, Download } from "lucide-react";
 import clsx from "clsx";
 import { Context } from "../main";
 import api from "../api/client";
 import MainLayout from "../layout/MainLayout";
+import LeaderboardTable from "../components/contest/LeaderboardTable";
 
 const STATUS_CONFIG = {
   live: { label: "Live", color: "bg-green-500/10 text-green-400 border-green-500/30", icon: "🟢" },
@@ -20,6 +21,7 @@ export default function ManageContestPage() {
   const [contest, setContest] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("analytics");
+  const [leaderboard, setLeaderboard] = useState([]);
 
   useEffect(() => {
     const fetchContest = async () => {
@@ -29,9 +31,8 @@ export default function ManageContestPage() {
         
         const now = new Date();
         const start = new Date(data.contest.start_time);
-        const end = new Date(data.contest.end_time);
         
-        if (now >= start && now <= end) {
+        if (now >= start) {
           setActiveTab("analytics");
         } else {
           setActiveTab("editor");
@@ -47,6 +48,49 @@ export default function ManageContestPage() {
     };
     fetchContest();
   }, [id, navigate]);
+
+  useEffect(() => {
+    const fetchLeaderboard = async () => {
+      try {
+        const { data } = await api.get(`/contests/${id}/leaderboard`);
+        setLeaderboard(data.leaderboard || []);
+      } catch (err) {
+        console.error("Failed to fetch leaderboard:", err);
+      }
+    };
+    if (activeTab === "analytics" && contest) {
+      const now = new Date();
+      const start = new Date(contest.start_time);
+      if (now >= start) {
+        fetchLeaderboard();
+      }
+    }
+  }, [id, activeTab, contest]);
+
+  const exportToCSV = () => {
+    if (!leaderboard || leaderboard.length === 0) return;
+    const headers = ["Rank", "Name", "Solved"];
+    
+    const rows = leaderboard.map(user => [
+      user.rank,
+      `"${user.name}"`,
+      user.solvedCount
+    ]);
+    
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(r => r.join(","))
+    ].join("\n");
+    
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `${contest.name.replace(/\s+/g, '_')}_Leaderboard.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const getContestStatus = () => {
     if (!contest || contest.is_active === false || !contest.start_time) return "draft";
@@ -150,7 +194,7 @@ export default function ManageContestPage() {
               )}
             >
               <BarChart3 size={16} />
-              Live Analytics
+              Analytics & Leaderboard
             </button>
             <button
               onClick={() => setActiveTab("editor")}
@@ -196,17 +240,39 @@ export default function ManageContestPage() {
             </div>
 
             <div className="bg-card-dark border border-white/10 rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <BarChart3 size={20} className="text-brand-yellow" />
-                Real-time Leaderboard
-              </h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                  <BarChart3 size={20} className="text-brand-yellow" />
+                  {status === "ended" ? "Final Leaderboard" : "Real-time Leaderboard"}
+                </h3>
+                {(status === "live" || status === "ended") && leaderboard.length > 0 && (
+                  <button
+                    onClick={exportToCSV}
+                    className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg bg-white/10 text-white hover:bg-white/20 transition-all"
+                  >
+                    <Download size={16} />
+                    Export CSV
+                  </button>
+                )}
+              </div>
+              
               {status === "live" || status === "ended" ? (
-                <div className="text-center py-8 text-muted">
-                  <p>Leaderboard data will appear here when participants start submitting.</p>
-                  <Link to={`/contests/${id}`} className="text-brand-yellow hover:underline text-sm mt-2 inline-block">
-                    View Full Leaderboard →
-                  </Link>
-                </div>
+                <>
+                  {leaderboard.length > 0 ? (
+                    <div className="max-h-[400px] overflow-y-auto custom-scrollbar mb-4">
+                      <LeaderboardTable leaderboard={leaderboard} hideHeader={true} />
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-muted">
+                      <p>No submissions found for this contest yet.</p>
+                    </div>
+                  )}
+                  <div className="text-center">
+                    <Link to={`/contests/${id}`} className="text-brand-yellow hover:underline text-sm inline-block">
+                      View Full Contest Page →
+                    </Link>
+                  </div>
+                </>
               ) : (
                 <div className="text-center py-8 text-muted">
                   <p>The leaderboard will become available once the contest starts.</p>
