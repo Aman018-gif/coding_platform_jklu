@@ -3,9 +3,48 @@ import { catchAsyncError } from "../middlewares/catchAsyncError.js";
 import { Problem } from "../models/problemModel.js";
 import { Submission } from "../models/submissionModel.js";
 import { Contest } from "../models/contestModel.js";
+import { User } from "../models/userModel.js";
 import { ContestLeaderboard } from "../models/leaderboardModel.js";
 import { createSubmission, createSubmissionWithLimits, normalizeStatus } from "../utils/judge0.js";
 import { createNotification } from "./notificationController.js";
+
+/**
+ * Update a user's daily practice streak.
+ * Rules:
+ *   - If today is the same calendar day as last_active_date → already counted, no change.
+ *   - If today is exactly the day after last_active_date → consecutive, streak++.
+ *   - If last_active_date is null OR more than 1 day ago → streak resets to 1.
+ * Uses UTC dates so the comparison is timezone-consistent.
+ */
+async function updateUserStreak(userId) {
+  const user = await User.findById(userId).select("streak last_active_date");
+  if (!user) return;
+
+  const todayUTC = new Date();
+  todayUTC.setUTCHours(0, 0, 0, 0);         // midnight today (UTC)
+
+  if (user.last_active_date) {
+    const lastUTC = new Date(user.last_active_date);
+    lastUTC.setUTCHours(0, 0, 0, 0);        // midnight of last active day
+
+    const diffDays = Math.round(
+      (todayUTC.getTime() - lastUTC.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    if (diffDays === 0) return;              // already active today
+    if (diffDays === 1) {
+      user.streak = (user.streak || 0) + 1; // consecutive day
+    } else {
+      user.streak = 1;                      // streak broken — restart at 1
+    }
+  } else {
+    user.streak = 1;                        // first ever activity
+  }
+
+  user.last_active_date = new Date();
+  await user.save({ validateModifiedOnly: true });
+}
+
 
 function normalizeOutput(out) {
   return String(out || "")
@@ -255,6 +294,11 @@ export const submitCode = catchAsyncError(async (req, res, next) => {
     status: finalStatus,
     submitted_at: submission.submission_time,
   });
+
+  // Update streak on any Accepted submission
+  if (finalStatus === "Accepted") {
+    await updateUserStreak(user_id);
+  }
 
   // Notify User
   await createNotification({

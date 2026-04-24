@@ -223,20 +223,24 @@ export const getStudentsByGroup = catchAsyncError(async (req, res, next) => {
 
 export const searchUsers = catchAsyncError(async (req, res, next) => {
   const { role, query } = req.query;
-  
-  const filter = {};
+
+  // Only return verified accounts — avoids ghost/test registrations
+  const filter = { accountVerified: true };
   if (role) {
     filter.role = role;
   }
-  if (query) {
+  if (query && query.trim()) {
     filter.$or = [
-      { name: { $regex: query, $options: 'i' } },
-      { email: { $regex: query, $options: 'i' } },
+      { name: { $regex: query.trim(), $options: 'i' } },
+      { email: { $regex: query.trim(), $options: 'i' } },
     ];
   }
-  
-  const users = await User.find(filter).select("name email role").limit(20).lean();
-  
+
+  const users = await User.find(filter)
+    .select("name email role group")
+    .limit(10)
+    .lean();
+
   res.status(200).json({
     success: true,
     users,

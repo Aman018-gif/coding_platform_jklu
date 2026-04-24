@@ -38,6 +38,25 @@ export const registerForContest = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("Registration closed. You can only register up to 15 minutes after the contest starts.", 400));
   }
 
+  // ── Group eligibility check ───────────────────────────────────────────────
+  const restrictedGroups = ["First Year", "Second Year"];
+  if (contest.participantGroup && restrictedGroups.includes(contest.participantGroup)) {
+    const userGroup = req.user.group || "";
+    const isInGroup = userGroup === contest.participantGroup;
+    const isAdditional = contest.additionalParticipants
+      .map((id) => id.toString())
+      .includes(req.user._id.toString());
+
+    if (!isInGroup && !isAdditional) {
+      return next(
+        new ErrorHandler(
+          `This contest is restricted to ${contest.participantGroup} students.`,
+          403
+        )
+      );
+    }
+  }
+
   await Contest.findByIdAndUpdate(req.params.id, {
     $addToSet: { participants: req.user._id },
   });
@@ -51,16 +70,17 @@ export const registerForContest = catchAsyncError(async (req, res, next) => {
 });
 
 export const createContest = catchAsyncError(async (req, res, next) => {
-  const { 
-    name, 
-    slug, 
-    start_time, 
-    end_time, 
+  const {
+    name,
+    slug,
+    start_time,
+    end_time,
     is_active,
     organizer,
     markForAttendance,
     moderators,
     participantGroup,
+    additionalParticipants,
     notifyStart,
     notifyResults,
     bannerImageURL,
@@ -105,6 +125,19 @@ export const createContest = catchAsyncError(async (req, res, next) => {
     validModeratorIds.push(req.user._id);
   }
 
+  // Resolve additionalParticipants: accept array of _id strings or emails
+  let validAdditionalIds = [];
+  if (Array.isArray(additionalParticipants)) {
+    for (const ap of additionalParticipants) {
+      if (mongoose.Types.ObjectId.isValid(ap)) {
+        validAdditionalIds.push(new mongoose.Types.ObjectId(ap));
+      } else if (typeof ap === 'string' && ap.includes('@')) {
+        const u = await User.findOne({ email: ap }).select('_id');
+        if (u) validAdditionalIds.push(u._id);
+      }
+    }
+  }
+
   const contest = await Contest.create({
     name,
     slug: finalSlug,
@@ -115,12 +148,13 @@ export const createContest = catchAsyncError(async (req, res, next) => {
     markForAttendance,
     moderators: validModeratorIds,
     participantGroup,
+    additionalParticipants: validAdditionalIds,
     notifyStart,
     notifyResults,
     bannerImageURL,
     description,
     isPublic: isPublic !== false,
-    created_by: req.user._id, // Injected via auth middleware
+    created_by: req.user._id,
   });
 
   return res.status(201).json({ success: true, contest });
@@ -147,6 +181,7 @@ export const updateContest = catchAsyncError(async (req, res, next) => {
     markForAttendance,
     moderators,
     participantGroup,
+    additionalParticipants,
     notifyStart,
     notifyResults,
     bannerImageURL,
@@ -167,6 +202,22 @@ export const updateContest = catchAsyncError(async (req, res, next) => {
   if (bannerImageURL !== undefined) contest.bannerImageURL = bannerImageURL;
   if (description !== undefined) contest.description = description;
   if (isPublic !== undefined) contest.isPublic = isPublic;
+
+  // Resolve additionalParticipants for update
+  if (additionalParticipants !== undefined) {
+    let validAdditionalIds = [];
+    if (Array.isArray(additionalParticipants)) {
+      for (const ap of additionalParticipants) {
+        if (mongoose.Types.ObjectId.isValid(ap)) {
+          validAdditionalIds.push(new mongoose.Types.ObjectId(ap));
+        } else if (typeof ap === 'string' && ap.includes('@')) {
+          const u = await User.findOne({ email: ap }).select('_id');
+          if (u) validAdditionalIds.push(u._id);
+        }
+      }
+    }
+    contest.additionalParticipants = validAdditionalIds;
+  }
 
   let validModeratorIds = [];
   if (Array.isArray(moderators)) {

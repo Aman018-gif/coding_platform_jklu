@@ -8,6 +8,7 @@ const contestSchema = new mongoose.Schema({
   organizer: { type: String, trim: true },
   markForAttendance: { type: Boolean, default: false },
   participants: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+  additionalParticipants: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   moderators: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   participantGroup: { type: String, trim: true },
   notifyStart: { type: Boolean, default: false },
