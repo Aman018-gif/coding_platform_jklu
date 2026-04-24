@@ -105,6 +105,7 @@ export default function CreateContestPage() {
             description: contest.description || '',
             isPublic: contest.isPublic !== false,
             isDraft: !contest.is_active,
+            markForAttendance: contest.markForAttendance || false,
           });
           setSavedSlug(contest.slug);
           setSavedContestId(contest._id);

@@ -4,7 +4,7 @@ import { calcDuration, generateSlug } from '../utils/timeHelpers';
 import { createContest, updateContest, deleteContest, fetchStudentRoster, createProblem, addProblemsToContest } from '../api/contestApi';
 
 const TABS = ['Landing Page', 'Problems', 'Moderators', 'Participants'];
-const GROUPS = ['First year', 'Second Year', 'Coding Club', 'Public'];
+const GROUPS = ['First Year', 'Second Year', 'Open'];
 
 const DEFAULT_FORM = {
     name: '',
@@ -20,6 +20,7 @@ const DEFAULT_FORM = {
     description: '',
     isPublic: true,
     isDraft: false,
+    markForAttendance: false,
 };
 
 export { TABS, GROUPS };
@@ -136,6 +137,7 @@ export function useContestForm(currentUser) {
                 markForAttendance: form.markForAttendance,
                 moderators: moderators.filter(m => !m.isCurrentUser).map(m => m.email),
                 participantGroup: form.participantGroup,
+                additionalParticipants: participantsList.map(p => p._id).filter(Boolean),
                 notifyStart: form.notifyStart,
                 notifyResults: form.notifyResults,
                 bannerImageURL: form.bannerImageURL,
@@ -267,6 +269,7 @@ export function useContestForm(currentUser) {
                 markForAttendance: form.markForAttendance,
                 moderators: moderators.filter(m => !m.isCurrentUser).map(m => m.email),
                 participantGroup: form.participantGroup,
+                additionalParticipants: participantsList.map(p => p._id).filter(Boolean),
                 notifyStart: form.notifyStart,
                 notifyResults: form.notifyResults,
                 bannerImageURL: form.bannerImageURL,

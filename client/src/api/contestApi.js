@@ -49,3 +49,10 @@ export const createProblem = async (problemData) => {
     const { data } = await api.post('/problems', problemData);
     return data.problem;
 };
+
+// Search verified users by name or email (for TA additional-participant search)
+export const searchUsersForContest = async (query) => {
+    const { data } = await api.get(`/user/search?query=${encodeURIComponent(query)}`);
+    return data.users || [];
+};
+
