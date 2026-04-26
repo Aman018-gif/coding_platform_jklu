@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState, useRef } from 'react';
+import React, { useContext, useEffect, useState, useRef, useCallback } from 'react';
 import { Context } from '../main';
 import MainLayout from '../layout/MainLayout';
 import {
@@ -18,11 +18,17 @@ import {
   Clock,
   X,
   Camera,
-  Upload
+  Upload,
+  AlertCircle,
 } from 'lucide-react';
 import api from '../api/client';
 
-// ─── Tiered Badge Config ────────────────────────────────────────────────────
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+const MAX_IMAGE_BYTES = 2 * 1024 * 1024; // 2 MB hard cap per image
+const MAX_IMAGE_LABEL = '2 MB';
+
 const RANK_BADGE_CONFIG = {
   1: {
     label: '🥇 Rank #1',
@@ -71,7 +77,6 @@ const RANK_BADGE_CONFIG = {
   },
 };
 
-// ─── Heatmap Filter Config ───────────────────────────────────────────────────
 const HEATMAP_FILTERS = [
   { label: '10D', cols: 2 },
   { label: '1M',  cols: 4 },
@@ -79,8 +84,51 @@ const HEATMAP_FILTERS = [
   { label: '6M',  cols: 26 },
 ];
 
-// ─── Sub-Components ──────────────────────────────────────────────────────────
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+const formatBytes = (bytes) => {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+};
 
+// ---------------------------------------------------------------------------
+// ErrorToast — bottom-center popup, auto-dismisses after 6 s
+// ---------------------------------------------------------------------------
+const ErrorToast = ({ message, onClose }) => {
+  useEffect(() => {
+    if (!message) return;
+    const t = setTimeout(onClose, 6000);
+    return () => clearTimeout(t);
+  }, [message, onClose]);
+
+  if (!message) return null;
+
+  return (
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] w-full max-w-sm px-4">
+      <div className="flex items-start gap-3 p-4 rounded-xl bg-red-600 text-white shadow-2xl shadow-red-900/40 border border-red-500/60">
+        <div className="shrink-0 mt-0.5">
+          <AlertCircle size={18} className="text-red-200" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-bold leading-snug">Upload Error</p>
+          <p className="text-xs text-red-100 mt-1 whitespace-pre-line leading-relaxed">{message}</p>
+        </div>
+        <button
+          onClick={onClose}
+          className="shrink-0 p-0.5 rounded text-red-200 hover:text-white hover:bg-red-500/40 transition-colors"
+        >
+          <X size={14} />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// ---------------------------------------------------------------------------
+// StatCard
+// ---------------------------------------------------------------------------
 const StatCard = ({ icon: Icon, iconColor, value, label }) => (
   <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 flex flex-col items-center justify-center text-center hover:scale-105 transition-transform cursor-default">
     <Icon size={28} className={`${iconColor} mb-2 drop-shadow-md`} />
@@ -89,17 +137,16 @@ const StatCard = ({ icon: Icon, iconColor, value, label }) => (
   </div>
 );
 
+// ---------------------------------------------------------------------------
+// RankBadgeCard
+// ---------------------------------------------------------------------------
 const RankBadgeCard = ({ rank, contestName }) => {
   const cfg = RANK_BADGE_CONFIG[rank];
   if (!cfg) return null;
   const Icon = cfg.icon;
   return (
-    <div
-      className={`flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r ${cfg.gradient} border ${cfg.border} hover:shadow-lg ${cfg.glow} transition-all cursor-pointer group`}
-    >
-      <div
-        className={`w-12 h-12 rounded-full ${cfg.bg} flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow-md`}
-      >
+    <div className={`flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r ${cfg.gradient} border ${cfg.border} hover:shadow-lg ${cfg.glow} transition-all cursor-pointer group`}>
+      <div className={`w-12 h-12 rounded-full ${cfg.bg} flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow-md`}>
         <Icon size={22} className={`${cfg.iconColor} drop-shadow-lg`} />
       </div>
       <div className="flex-1 min-w-0">
@@ -110,6 +157,9 @@ const RankBadgeCard = ({ rank, contestName }) => {
   );
 };
 
+// ---------------------------------------------------------------------------
+// MonthlyBadgeCard
+// ---------------------------------------------------------------------------
 const MonthlyBadgeCard = ({ month, count }) => (
   <div className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-purple-500/10 to-pink-500/5 border border-purple-400/30 hover:shadow-lg shadow-purple-400/10 transition-all cursor-pointer group">
     <div className="w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow-md">
@@ -117,62 +167,113 @@ const MonthlyBadgeCard = ({ month, count }) => (
     </div>
     <div>
       <h3 className="font-bold text-slate-800 dark:text-white text-sm">Performer of the Month — {month}</h3>
-      <p className="text-xs text-slate-500 dark:text-white/60 mt-0.5">Appeared in Top 5 — {count}× that month</p>
+      <p className="text-xs text-slate-500 dark:text-white/60 mt-0.5">Appeared in Top 5 — {count}x that month</p>
     </div>
   </div>
 );
 
-const ImageUploadField = ({ label, value, onChange, previewClassName }) => {
+// ---------------------------------------------------------------------------
+// ImageUploadField
+//   • Enforces MAX_IMAGE_BYTES — calls onError(msg) instead of alert()
+//   • Shows "Max 2 MB" badge in the label row
+//   • Shows a colour-coded size meter bar after a file is picked
+// ---------------------------------------------------------------------------
+const ImageUploadField = ({ label, value, onChange, previewClassName, onError }) => {
   const inputRef = useRef(null);
+  const [fileInfo, setFileInfo] = useState(null); // { name, size }
 
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      alert('Please select a valid image file.');
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      alert('Image must be under 5MB.');
+      onError?.('Invalid file type. Please select a JPG, PNG, or GIF image.');
+      e.target.value = '';
       return;
     }
 
+    if (file.size > MAX_IMAGE_BYTES) {
+      onError?.(
+        `"${file.name}" is ${formatBytes(file.size)} — exceeds the ${MAX_IMAGE_LABEL} limit.\n\nTip: Compress your image at squoosh.app or tinypng.com before uploading.`
+      );
+      e.target.value = '';
+      return;
+    }
+
+    setFileInfo({ name: file.name, size: file.size });
     const reader = new FileReader();
-    reader.onload = (event) => {
-      onChange(event.target.result);
-    };
+    reader.onload = (event) => onChange(event.target.result);
     reader.readAsDataURL(file);
   };
 
+  const sizePercent = fileInfo ? Math.min((fileInfo.size / MAX_IMAGE_BYTES) * 100, 100) : 0;
+  const meterColor =
+    sizePercent > 85 ? 'bg-red-500' :
+    sizePercent > 60 ? 'bg-yellow-400' :
+    'bg-green-500';
+
   return (
     <div>
-      <label className="block text-xs font-semibold text-slate-600 dark:text-white/70 uppercase mb-2">
-        {label}
-      </label>
+      {/* Label row with limit badge */}
+      <div className="flex items-center justify-between mb-2">
+        <label className="text-xs font-semibold text-slate-600 dark:text-white/70 uppercase tracking-wide">
+          {label}
+        </label>
+        <span className="text-[10px] font-semibold text-slate-400 dark:text-white/30 bg-slate-100 dark:bg-white/5 px-2 py-0.5 rounded-full border border-slate-200 dark:border-white/10">
+          Max {MAX_IMAGE_LABEL}
+        </span>
+      </div>
+
+      {/* Drop zone */}
       <div
         onClick={() => inputRef.current?.click()}
         className="relative w-full cursor-pointer rounded-xl border-2 border-dashed border-slate-200 dark:border-white/10 hover:border-brand-yellow dark:hover:border-brand-yellow transition-colors overflow-hidden group"
       >
         {value ? (
           <div className={`relative ${previewClassName || 'h-24'}`}>
-            <img src={value} alt="Preview" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            {/* FIX: key={value} forces React to remount the img when src changes,
+                preventing stale preview when switching between uploaded images */}
+            <img key={value} src={value} alt="Preview" className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity gap-1">
               <div className="flex items-center gap-2 text-white text-sm font-semibold">
                 <Upload size={16} />
                 Change Image
               </div>
+              {fileInfo && (
+                <span className="text-white/60 text-[10px]">{formatBytes(fileInfo.size)}</span>
+              )}
             </div>
           </div>
         ) : (
           <div className="h-24 flex flex-col items-center justify-center gap-2 text-slate-400 dark:text-white/30 group-hover:text-brand-yellow transition-colors p-4">
             <Upload size={22} />
             <span className="text-xs font-medium text-center">
-              Click to upload — JPG, PNG, GIF (max 5MB)
+              Click to upload — JPG, PNG, GIF
             </span>
           </div>
         )}
       </div>
+
+      {/* Size meter — only shown after a file is picked */}
+      {fileInfo && (
+        <div className="mt-2 space-y-1">
+          <div className="flex justify-between items-center">
+            <span className="text-[10px] text-slate-400 dark:text-white/40 truncate max-w-[60%]">
+              {fileInfo.name}
+            </span>
+            <span className={`text-[10px] font-bold ${sizePercent > 85 ? 'text-red-500' : 'text-slate-400 dark:text-white/40'}`}>
+              {formatBytes(fileInfo.size)} / {MAX_IMAGE_LABEL}
+            </span>
+          </div>
+          <div className="w-full h-1 bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all duration-300 ${meterColor}`}
+              style={{ width: `${sizePercent}%` }}
+            />
+          </div>
+        </div>
+      )}
+
       <input
         ref={inputRef}
         type="file"
@@ -184,36 +285,38 @@ const ImageUploadField = ({ label, value, onChange, previewClassName }) => {
   );
 };
 
-// ─── Main ProfilePage ────────────────────────────────────────────────────────
-
+// ---------------------------------------------------------------------------
+// ProfilePage
+// ---------------------------------------------------------------------------
 const ProfilePage = () => {
   const { user } = useContext(Context);
 
   const [profileData, setProfileData] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  const [isEditing, setIsEditing] = useState(false);
-  const [editForm, setEditForm] = useState({
-    name: '',
-    headline: '',
-    avatar: '',
-    wallpaper: ''
-  });
-  const [saving, setSaving] = useState(false);
-
-  // ── NEW: Heatmap filter state (default = 6 months = 26 cols) ──
+  const [loading, setLoading]         = useState(true);
+  const [isEditing, setIsEditing]     = useState(false);
+  const [saving, setSaving]           = useState(false);
   const [heatmapCols, setHeatmapCols] = useState(26);
 
+  // Toast
+  const [toastMsg, setToastMsg] = useState('');
+  const showError  = useCallback((msg) => setToastMsg(msg), []);
+  const closeToast = useCallback(() => setToastMsg(''), []);
+
+  const [editForm, setEditForm] = useState({
+    name: '', headline: '', avatar: '', wallpaper: '',
+  });
+
+  // Fetch profile on mount
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
         const { data } = await api.get('/user/profile');
         setProfileData(data.profile);
         setEditForm({
-          name: data.profile.name || '',
-          headline: data.profile.headline || '',
-          avatar: data.profile.avatar || '',
-          wallpaper: data.profile.wallpaper || ''
+          name:      data.profile.name      || '',
+          headline:  data.profile.headline  || '',
+          avatar:    data.profile.avatar    || '',
+          wallpaper: data.profile.wallpaper || '',
         });
       } catch (err) {
         console.error('Failed to fetch profile data:', err);
@@ -224,37 +327,63 @@ const ProfilePage = () => {
     fetchProfileData();
   }, []);
 
+  // Save — diff-only payload; catches 413 explicitly
   const handleSaveProfile = async (e) => {
     e.preventDefault();
     setSaving(true);
     try {
-      const { data } = await api.put('/user/profile', editForm);
+      const payload = {};
+      if (editForm.name      !== (profileData?.name      || '')) payload.name      = editForm.name;
+      if (editForm.headline  !== (profileData?.headline  || '')) payload.headline  = editForm.headline;
+      if (editForm.avatar    !== (profileData?.avatar    || '')) payload.avatar    = editForm.avatar;
+      if (editForm.wallpaper !== (profileData?.wallpaper || '')) payload.wallpaper = editForm.wallpaper;
+
+      if (Object.keys(payload).length === 0) {
+        setIsEditing(false);
+        return;
+      }
+
+      const { data } = await api.put('/user/profile', payload);
       setProfileData(prev => ({ ...prev, ...data.profile }));
       setIsEditing(false);
     } catch (err) {
       console.error('Failed to update profile:', err);
-      alert('Failed to update profile.');
+      const status = err?.response?.status;
+      let msg;
+      if (status === 413) {
+        msg =
+          'Request Entity Too Large (413)\n\n' +
+          'Your images are too big to send together. Please:\n' +
+          '\u2022 Use images under 2 MB each\n' +
+          '\u2022 Compress at squoosh.app or tinypng.com\n' +
+          '\u2022 Or update one image at a time';
+      } else {
+        msg =
+          err?.response?.data?.message ||
+          err?.response?.data?.error   ||
+          err?.message                 ||
+          'Unknown error occurred.';
+      }
+      showError(msg);
     } finally {
       setSaving(false);
     }
   };
 
-  // ── Derived Data ──
+  // Derived
   const stats = {
-    contestRank: profileData?.contestRank || 0,
-    contestPoints: profileData?.contestPoints || 0,
-    totalSolved: profileData?.totalSolved || 0,
+    contestRank:          profileData?.contestRank          || 0,
+    contestPoints:        profileData?.contestPoints        || 0,
+    totalSolved:          profileData?.totalSolved          || 0,
     contestsParticipated: profileData?.contestsParticipated || 0,
-    streak: profileData?.streak || 0,
+    streak:               profileData?.streak               || 0,
   };
-
-  const weeklyBadges = profileData?.weeklyBadges || [];
-  const monthlyBadges = profileData?.monthlyBadges || [];
-  const recentActivity = profileData?.recentActivity || [];
-
+  const weeklyBadges   = profileData?.weeklyBadges  || [];
+  const monthlyBadges  = profileData?.monthlyBadges || [];
+  const recentActivity = profileData?.recentActivity|| [];
+  const hasBadges      = weeklyBadges.length > 0 || monthlyBadges.length > 0;
   const solveBreakdown = profileData?.solveBreakdown || {
-    easy: 0, medium: 0, hard: 0,
-    easyTotal: 0, mediumTotal: 0, hardTotal: 0
+    easy: 0, medium: 0, hard: 0, easyTotal: 0, mediumTotal: 0, hardTotal: 0,
   };
 
   const getHeatColor = (dateStr) => {
@@ -266,7 +395,6 @@ const ProfilePage = () => {
     return 'bg-slate-100 dark:bg-white/5';
   };
 
-  // ── NEW: Build month label positions for heatmap ──
   const getMonthLabels = (cols) => {
     const labels = [];
     let lastMonth = null;
@@ -285,20 +413,18 @@ const ProfilePage = () => {
   };
 
   const activityIcon = (type) => {
-    if (type === 'solve') return <Code size={16} />;
+    if (type === 'solve')   return <Code size={16} />;
     if (type === 'contest') return <Swords size={16} />;
-    if (type === 'lab') return <FlaskConical size={16} />;
+    if (type === 'lab')     return <FlaskConical size={16} />;
     return <Flame size={16} />;
   };
-
-  const hasBadges = weeklyBadges.length > 0 || monthlyBadges.length > 0;
 
   return (
     <MainLayout>
       <div className="min-h-screen bg-background-light dark:bg-bg-dark pt-8 pb-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto space-y-8">
 
-          {/* ── Profile Header ── */}
+          {/* Profile Header */}
           <div className="relative rounded-2xl overflow-hidden bg-white dark:bg-card-dark border border-slate-200 dark:border-white/10 shadow-lg hover:shadow-xl transition-shadow duration-300">
             <div
               className="h-40 bg-gradient-to-r from-blue-600 via-purple-600 to-brand-yellow opacity-90 bg-cover bg-center"
@@ -333,10 +459,10 @@ const ProfilePage = () => {
             </div>
           </div>
 
-          {/* ── Main Grid ── */}
+          {/* Main Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-            {/* ── LEFT COLUMN ── */}
+            {/* LEFT */}
             <div className="lg:col-span-1 space-y-8">
 
               {/* Performance Overview */}
@@ -348,10 +474,10 @@ const ProfilePage = () => {
                 </h2>
                 <p className="text-xs text-slate-400 dark:text-white/40 mb-5 ml-7">Rank &amp; Points from Contests only</p>
                 <div className="grid grid-cols-2 gap-4">
-                  <StatCard icon={Trophy} iconColor="text-yellow-500" value={`#${stats.contestRank}`} label="Contest Rank" />
-                  <StatCard icon={TrendingUp} iconColor="text-green-500" value={stats.contestPoints} label="Contest Points" />
-                  <StatCard icon={Flame} iconColor="text-orange-500" value={stats.streak} label="Day Streak" />
-                  <StatCard icon={Swords} iconColor="text-blue-500" value={stats.contestsParticipated} label="Contests" />
+                  <StatCard icon={Trophy}     iconColor="text-yellow-500" value={`#${stats.contestRank}`}    label="Contest Rank" />
+                  <StatCard icon={TrendingUp} iconColor="text-green-500"  value={stats.contestPoints}        label="Contest Points" />
+                  <StatCard icon={Flame}      iconColor="text-orange-500" value={stats.streak}               label="Day Streak" />
+                  <StatCard icon={Swords}     iconColor="text-blue-500"   value={stats.contestsParticipated} label="Contests" />
                 </div>
               </div>
 
@@ -385,7 +511,7 @@ const ProfilePage = () => {
                   <p className="text-xs text-slate-400 dark:text-white/40 font-semibold uppercase tracking-wider mb-2">How badges work</p>
                   <ul className="space-y-1">
                     <li className="text-xs text-slate-500 dark:text-white/50 flex items-center gap-1.5">
-                      <Crown size={11} className="text-yellow-400" /> Weekly — Top 5 finish in any contest (Rank 1–5)
+                      <Crown size={11} className="text-yellow-400" /> Weekly — Top 5 finish in any contest (Rank 1-5)
                     </li>
                     <li className="text-xs text-slate-500 dark:text-white/50 flex items-center gap-1.5">
                       <Award size={11} className="text-purple-400" /> Monthly — Most frequent Top 5 appearances that month
@@ -395,20 +521,16 @@ const ProfilePage = () => {
               </div>
             </div>
 
-            {/* ── RIGHT COLUMN ── */}
+            {/* RIGHT */}
             <div className="lg:col-span-2 space-y-8">
 
-              {/* ── UPDATED: Contribution Heatmap with month labels + filter ── */}
+              {/* Contribution Heatmap */}
               <div className="bg-white dark:bg-card-dark rounded-2xl p-6 border border-slate-200 dark:border-white/10 shadow-lg hover:-translate-y-1 transition-transform duration-300">
-
-                {/* Header row: title left, filter buttons right */}
                 <div className="flex flex-wrap justify-between items-center gap-3 mb-5">
                   <h2 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
                     <CalendarCheck size={20} className="text-green-500" />
                     Contribution Heatmap
                   </h2>
-
-                  {/* Filter pills */}
                   <div className="flex items-center gap-1.5">
                     {HEATMAP_FILTERS.map((f) => (
                       <button
@@ -427,24 +549,16 @@ const ProfilePage = () => {
                 </div>
 
                 <div className="overflow-x-auto pb-2">
-
-                  {/* Month labels row */}
                   <div className="flex gap-1 min-w-max mb-1.5">
                     {getMonthLabels(heatmapCols).map(({ col, label }) => (
                       <div key={col} className="w-4 flex items-end justify-start">
-                        {label ? (
-                          <span className="text-[10px] font-semibold text-slate-400 dark:text-white/40 leading-none whitespace-nowrap">
-                            {label}
-                          </span>
-                        ) : (
-                          /* empty spacer to keep columns aligned */
-                          <span className="text-[10px] leading-none">&nbsp;</span>
-                        )}
+                        {label
+                          ? <span className="text-[10px] font-semibold text-slate-400 dark:text-white/40 leading-none whitespace-nowrap">{label}</span>
+                          : <span className="text-[10px] leading-none">&nbsp;</span>
+                        }
                       </div>
                     ))}
                   </div>
-
-                  {/* Heatmap grid */}
                   <div className="flex gap-1 min-w-max">
                     {[...Array(heatmapCols)].map((_, col) => (
                       <div key={col} className="flex flex-col gap-1">
@@ -465,7 +579,6 @@ const ProfilePage = () => {
                   </div>
                 </div>
 
-                {/* Legend */}
                 <div className="flex justify-end items-center gap-2 mt-4 text-xs font-medium text-slate-500 dark:text-white/50">
                   <span>Less</span>
                   <div className="w-3 h-3 rounded-sm bg-slate-100 dark:bg-white/5" />
@@ -509,24 +622,15 @@ const ProfilePage = () => {
                 <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-200 dark:before:via-white/10 before:to-transparent">
                   {recentActivity?.length > 0 ? (
                     recentActivity.map((item) => (
-                      <div
-                        key={item.id}
-                        className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group"
-                      >
-                        <div
-                          className={`flex items-center justify-center w-10 h-10 rounded-full border-4 border-white dark:border-card-dark ${
-                            item.status === 'Accepted'
-                              ? 'bg-green-500/10 text-green-500'
-                              : 'bg-red-500/10 text-red-500'
-                          } shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2`}
-                        >
+                      <div key={item.id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
+                        <div className={`flex items-center justify-center w-10 h-10 rounded-full border-4 border-white dark:border-card-dark ${item.status === 'Accepted' ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'} shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2`}>
                           {activityIcon(item.type)}
                         </div>
                         <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 hover:border-brand-yellow/50 transition-colors">
                           <div className="flex items-center justify-between mb-1">
-                            <span className={`font-mono text-xs font-bold uppercase tracking-wider ${
-                              item.status === 'Accepted' ? 'text-green-500' : 'text-red-500'
-                            }`}>{item.type}</span>
+                            <span className={`font-mono text-xs font-bold uppercase tracking-wider ${item.status === 'Accepted' ? 'text-green-500' : 'text-red-500'}`}>
+                              {item.type}
+                            </span>
                             <span className="text-xs font-medium text-slate-400 dark:text-white/40 flex items-center gap-1">
                               <Clock size={10} />
                               {item.time}
@@ -547,10 +651,11 @@ const ProfilePage = () => {
         </div>
       </div>
 
-      {/* ── Edit Profile Modal ── */}
+      {/* Edit Profile Modal */}
       {isEditing && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="w-full max-w-md bg-white dark:bg-card-dark border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+
             <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-white/5 shrink-0">
               <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
                 <Camera size={20} className="text-brand-yellow" />
@@ -566,29 +671,40 @@ const ProfilePage = () => {
 
             <div className="overflow-y-auto flex-1">
               <form onSubmit={handleSaveProfile} className="p-4 space-y-4">
+
+                {/* Headline */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 dark:text-white/70 uppercase mb-1">Headline / Bio</label>
+                  <label className="block text-xs font-semibold text-slate-600 dark:text-white/70 uppercase mb-1">
+                    Headline / Bio
+                  </label>
                   <input
                     type="text"
                     value={editForm.headline}
-                    onChange={(e) => setEditForm({ ...editForm, headline: e.target.value })}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, headline: e.target.value }))}
                     className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-yellow"
                     placeholder="e.g. Student @ 1st Year CSE"
                   />
                 </div>
 
+                {/* Avatar */}
+                {/* FIX: Using functional updater `prev => ({ ...prev, avatar: base64 })`
+                    to avoid stale closure overwriting the other field's value */}
                 <ImageUploadField
                   label="Avatar Image"
                   value={editForm.avatar}
-                  onChange={(base64) => setEditForm({ ...editForm, avatar: base64 })}
+                  onChange={(base64) => setEditForm(prev => ({ ...prev, avatar: base64 }))}
                   previewClassName="h-24"
+                  onError={showError}
                 />
 
+                {/* Wallpaper */}
+                {/* FIX: Same stale closure fix for wallpaper */}
                 <ImageUploadField
                   label="Wallpaper Banner"
                   value={editForm.wallpaper}
-                  onChange={(base64) => setEditForm({ ...editForm, wallpaper: base64 })}
+                  onChange={(base64) => setEditForm(prev => ({ ...prev, wallpaper: base64 }))}
                   previewClassName="h-32"
+                  onError={showError}
                 />
 
                 <div className="pt-2 flex justify-end gap-3">
@@ -612,6 +728,9 @@ const ProfilePage = () => {
           </div>
         </div>
       )}
+
+      {/* Error Toast — outside the modal so it's always on top */}
+      <ErrorToast message={toastMsg} onClose={closeToast} />
     </MainLayout>
   );
 };
