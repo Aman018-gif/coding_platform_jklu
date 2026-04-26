@@ -6,9 +6,11 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 
 const navLinks = [
+    { to: "/dashboard", label: "Dashboard" },
     { to: "/challenges", label: "Challenges" },
     { to: "/practice", label: "Practice" },
     { to: "/contests", label: "Contests" },
+    { to: "/my-classes", label: "My Classes" },
 ];
 
 export default function Navbar({ onLogoClick, onNavClick }) {
