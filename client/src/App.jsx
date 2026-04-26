@@ -23,6 +23,7 @@ import ProfilePage from "./pages/ProfilePage";
 import AdminDashboard from "./pages/AdminDashboard";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import StudentClassDashboard from "./pages/StudentClassDashboard";
+import ClassDetailsPage from "./pages/ClassDetailsPage";
 
 const API_BASE = "http://localhost:4000/api/v1";
 
@@ -71,6 +72,7 @@ const App = () => {
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
           <Route path="/my-classes" element={<StudentClassDashboard />} />
+          <Route path="/class/:id" element={<ClassDetailsPage />} />
         </Routes>
         <ToastContainer theme="colored" />
       </Router>

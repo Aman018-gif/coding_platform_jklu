@@ -19,15 +19,26 @@ const BANNER_COLORS = [
   "from-amber-600 to-amber-800"
 ];
 
-// Mock Due Assignments for the timeline
-const MOCK_ASSIGNMENTS = [
-  { id: 1, title: "Graph Algorithms Problem Set", course: "Data Structures", date: "Tomorrow, 11:59 PM", color: "bg-blue-500" },
-  { id: 2, title: "React Components Lab", course: "Web Dev", date: "Friday, 5:00 PM", color: "bg-purple-500" },
-  { id: 3, title: "Midterm Project Proposal", course: "Software Engineering", date: "Next Monday", color: "bg-emerald-500" }
-];
-
+// Format date helper
+const formatDueDate = (dateString) => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffDays = Math.floor((date - now) / (1000 * 60 * 60 * 24));
+  
+  if (diffDays === 0) return `Today, ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+  if (diffDays === 1) return `Tomorrow, ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+  
+  return date.toLocaleDateString([], { 
+    weekday: 'short', 
+    month: 'short', 
+    day: 'numeric', 
+    hour: '2-digit', 
+    minute: '2-digit' 
+  });
+};
 export default function StudentClassDashboard() {
   const [classes, setClasses] = useState([]);
+  const [dueSoonLabs, setDueSoonLabs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
   const [joinCode, setJoinCode] = useState("");
@@ -35,7 +46,17 @@ export default function StudentClassDashboard() {
 
   useEffect(() => {
     fetchClasses();
+    fetchDueSoonLabs();
   }, []);
+
+  const fetchDueSoonLabs = async () => {
+    try {
+      const { data } = await api.get("/labs/due-soon");
+      setDueSoonLabs(data.dueSoon || []);
+    } catch (error) {
+      console.error("Failed to load due soon labs:", error);
+    }
+  };
 
   const fetchClasses = async () => {
     try {
@@ -103,19 +124,25 @@ export default function StudentClassDashboard() {
             <>
               {classes.map((cls, idx) => {
                 const colorClass = BANNER_COLORS[idx % BANNER_COLORS.length];
-                // Mock a due status randomly or based on index for visual variety
-                const hasDue = idx % 2 === 0; 
+                const hasDue = dueSoonLabs.some(lab => lab.class_id === cls._id);
 
                 return (
-                  <div key={cls._id} className="bg-card-dark rounded-2xl overflow-hidden border border-white/10 flex flex-col hover:border-white/20 transition-all shadow-xl group relative">
+                  <div 
+                    key={cls._id} 
+                    onClick={() => window.location.href = `/class/${cls._id}`}
+                    className="bg-card-dark rounded-2xl overflow-hidden border border-white/10 flex flex-col hover:border-white/20 transition-all shadow-xl group relative cursor-pointer"
+                  >
                     
-                    {/* Banner */}
-                    <div className={`h-28 bg-gradient-to-br ${colorClass} relative overflow-hidden p-4 flex flex-col justify-end`}>
-                      {/* Geometric Pattern Overlay */}
-                      <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '16px 16px' }}></div>
-                      
-                      <h3 className="text-lg font-bold text-white relative z-10 truncate leading-tight">{cls.name}</h3>
-                      <p className="text-white/80 text-sm font-medium relative z-10 truncate">{cls.branch} • {cls.year}</p>
+                    {/* Banner and Avatar Wrapper */}
+                    <div className="relative">
+                      {/* Banner */}
+                      <div className={`h-28 bg-gradient-to-br ${colorClass} relative overflow-hidden p-4 flex flex-col justify-end`}>
+                        {/* Geometric Pattern Overlay */}
+                        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '16px 16px' }}></div>
+                        
+                        <h3 className="text-lg font-bold text-white relative z-10 truncate leading-tight">{cls.name}</h3>
+                        <p className="text-white/80 text-sm font-medium relative z-10 truncate">{cls.branch} • {cls.year}</p>
+                      </div>
                       
                       {/* Teacher Avatar positioned at banner edge */}
                       <div className="absolute -bottom-6 right-4 w-12 h-12 rounded-full bg-slate-800 border-4 border-card-dark flex items-center justify-center shadow-lg z-20">
@@ -179,32 +206,47 @@ export default function StudentClassDashboard() {
             Due Soon
           </h2>
           
-          <div className="bg-card-dark rounded-2xl border border-white/10 p-6">
-            <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-white/10 before:to-transparent">
-              
-              {MOCK_ASSIGNMENTS.map((assignment, i) => (
-                <div key={assignment.id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                  
-                  {/* Timeline Dot */}
-                  <div className={`flex items-center justify-center w-10 h-10 rounded-full border-4 border-card-dark ${assignment.color} shadow-lg shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 relative z-10`}>
-                    <Clock size={16} className="text-white" />
-                  </div>
-                  
-                  {/* Card */}
-                  <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl border border-white/5 bg-bg-dark shadow-sm hover:border-white/20 transition-colors">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className={`text-xs font-bold uppercase tracking-wider ${assignment.color.replace('bg-', 'text-')}`}>
-                        {assignment.course}
-                      </span>
-                      <span className="text-xs text-zinc-400 bg-white/5 px-2 py-0.5 rounded-full">{assignment.date}</span>
-                    </div>
-                    <h4 className="text-sm font-semibold text-white">{assignment.title}</h4>
-                  </div>
-
-                </div>
-              ))}
+          {dueSoonLabs.length === 0 ? (
+            <div className="bg-card-dark rounded-2xl border border-white/10 p-8 text-center">
+              <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Clock size={24} className="text-zinc-500" />
+              </div>
+              <h3 className="text-lg font-medium text-white mb-1">All caught up!</h3>
+              <p className="text-zinc-400">No upcoming assignments due soon.</p>
             </div>
-          </div>
+          ) : (
+            <div className="bg-card-dark rounded-2xl border border-white/10 p-6">
+              <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-white/10 before:to-transparent">
+                
+                {dueSoonLabs.map((lab, i) => {
+                  const colors = ["bg-blue-500", "bg-purple-500", "bg-emerald-500", "bg-rose-500", "bg-amber-500"];
+                  const color = colors[i % colors.length];
+                  
+                  return (
+                    <div key={lab._id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                      
+                      {/* Timeline Dot */}
+                      <div className={`flex items-center justify-center w-10 h-10 rounded-full border-4 border-card-dark ${color} shadow-lg shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 relative z-10`}>
+                        <Clock size={16} className="text-white" />
+                      </div>
+                      
+                      {/* Card */}
+                      <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl border border-white/5 bg-bg-dark shadow-sm hover:border-white/20 transition-colors cursor-pointer" onClick={() => window.location.href = `/class/${lab.class_id}/labs/${lab._id}`}>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className={`text-xs font-bold uppercase tracking-wider ${color.replace('bg-', 'text-')}`}>
+                            {lab.course}
+                          </span>
+                          <span className="text-xs text-zinc-400 bg-white/5 px-2 py-0.5 rounded-full">{formatDueDate(lab.date)}</span>
+                        </div>
+                        <h4 className="text-sm font-semibold text-white">{lab.title}</h4>
+                      </div>
+
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </section>
 
       </div>

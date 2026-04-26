@@ -5,6 +5,8 @@ import {
   getLabsForClass,
   getLabDetails,
   getGradesForClass,
+  getDueSoonLabs,
+  getMyLabs,
 } from "../controllers/labController.js";
 import { isAuthenticated, authorizeRoles } from "../middlewares/auth.js";
 
@@ -15,6 +17,8 @@ router.put("/:id/update", isAuthenticated, authorizeRoles("Teacher", "Admin"), u
 
 router.get("/class/:classId/grades", isAuthenticated, getGradesForClass);
 router.get("/class/:classId", isAuthenticated, getLabsForClass);
+router.get("/due-soon", isAuthenticated, getDueSoonLabs);
+router.get("/my-labs", isAuthenticated, getMyLabs);
 router.get("/:id", isAuthenticated, getLabDetails);
 
 export default router;

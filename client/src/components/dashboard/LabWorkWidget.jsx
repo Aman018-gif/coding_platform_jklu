@@ -1,49 +1,6 @@
-import { BookOpen, Clock, CheckCircle2, AlertCircle, Circle } from "lucide-react";
-
-// ── Placeholder data matching the Lab + Class schema ──────────────────────────
-// Lab: { title, deadline }  |  Class: { name, courseCode (to-be-added) }
-const PLACEHOLDER_LABS = [
-  {
-    id: "1",
-    title: "Binary Search Tree Implementation",
-    courseCode: "CS301",
-    courseName: "Data Structures & Algorithms",
-    deadline: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), // tomorrow
-    maxMarks: 20,
-    marksObtained: null,
-    status: "pending", // pending | submitted | graded | overdue
-  },
-  {
-    id: "2",
-    title: "Merge Sort & Quick Sort",
-    courseCode: "CS301",
-    courseName: "Data Structures & Algorithms",
-    deadline: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-    maxMarks: 15,
-    marksObtained: null,
-    status: "submitted",
-  },
-  {
-    id: "3",
-    title: "Graph Traversal (BFS & DFS)",
-    courseCode: "CS402",
-    courseName: "Algorithm Design",
-    deadline: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // past
-    maxMarks: 25,
-    marksObtained: 22,
-    status: "graded",
-  },
-  {
-    id: "4",
-    title: "Dynamic Programming Problems",
-    courseCode: "CS402",
-    courseName: "Algorithm Design",
-    deadline: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-    maxMarks: 30,
-    marksObtained: null,
-    status: "overdue",
-  },
-];
+import { useState, useEffect } from "react";
+import api from "../../api/client";
+import { BookOpen, Clock, CheckCircle2, AlertCircle, Circle, Loader2 } from "lucide-react";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function formatDeadline(date) {
@@ -107,8 +64,8 @@ function MarksDisplay({ lab }) {
       pct >= 80
         ? "text-[#e6d15a]"
         : pct >= 50
-        ? "text-sky-400"
-        : "text-red-400";
+          ? "text-sky-400"
+          : "text-red-400";
     return (
       <div className="text-right shrink-0">
         <span className={`text-sm font-bold ${color}`}>
@@ -129,7 +86,27 @@ function MarksDisplay({ lab }) {
 
 // ── Main Component ────────────────────────────────────────────────────────────
 export default function LabWorkWidget() {
-  const labs = PLACEHOLDER_LABS;
+  const [labs, setLabs] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchLabs = async () => {
+      try {
+        const { data } = await api.get("/labs/my-labs");
+        // Convert string dates to Date objects
+        const formattedLabs = data.labs.map(lab => ({
+          ...lab,
+          deadline: lab.deadline ? new Date(lab.deadline) : null
+        }));
+        setLabs(formattedLabs);
+      } catch (error) {
+        console.error("Error fetching labs for widget:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchLabs();
+  }, []);
 
   const pending = labs.filter((l) => l.status === "pending" || l.status === "overdue").length;
   const submitted = labs.filter((l) => l.status === "submitted" || l.status === "graded").length;
@@ -150,7 +127,7 @@ export default function LabWorkWidget() {
           </div>
         </div>
         <a
-          href="/labs"
+          href="/my-classes"
           className="text-[11px] font-semibold text-[#e6d15a] hover:text-white transition-colors"
         >
           View All
@@ -175,62 +152,69 @@ export default function LabWorkWidget() {
 
       {/* ── Rows ── */}
       <div className="divide-y divide-white/[0.04]">
-        {labs.map((lab) => {
-          const deadline = formatDeadline(lab.deadline);
-          const statusCfg = STATUS_CONFIG[lab.status];
-          const StatusIcon = statusCfg.icon;
+        {isLoading ? (
+          <div className="flex justify-center items-center py-8">
+            <Loader2 className="w-5 h-5 text-white/50 animate-spin" />
+          </div>
+        ) : labs.length === 0 ? (
+          <div className="text-center py-8 text-[11px] text-white/40">
+            No lab work assigned yet.
+          </div>
+        ) : (
+          labs.map((lab) => {
+            const deadline = lab.deadline ? formatDeadline(lab.deadline) : { label: "No deadline", urgent: false };
+            const statusCfg = STATUS_CONFIG[lab.status] || STATUS_CONFIG.pending;
+            const StatusIcon = statusCfg.icon;
 
-          return (
-            <div
-              key={lab.id}
-              className="grid grid-cols-12 gap-3 px-6 py-3.5 items-center hover:bg-white/[0.02] transition-colors group"
-            >
-              {/* Lab name + course */}
-              <div className="col-span-5 min-w-0">
-                <p className="text-[13px] font-medium text-white truncate group-hover:text-[#e6d15a] transition-colors">
-                  {lab.title}
-                </p>
-                <p className="text-[10px] text-white/40 mt-0.5 truncate">
-                  <span className="font-semibold text-white/50">
-                    {lab.courseCode}
-                  </span>{" "}
-                  &middot; {lab.courseName}
-                </p>
-              </div>
+            return (
+              <div
+                key={lab.id}
+                className="grid grid-cols-12 gap-3 px-6 py-3.5 items-center hover:bg-white/[0.02] transition-colors group"
+              >
+                {/* Lab name + course */}
+                <div className="col-span-5 min-w-0">
+                  <p className="text-[13px] font-medium text-white truncate group-hover:text-[#e6d15a] transition-colors">
+                    {lab.title}
+                  </p>
+                  <p className="text-[10px] text-white/40 mt-0.5 truncate">
+                    <span className="font-semibold text-white/50">
+                      {lab.courseCode}
+                    </span>{" "}
+                    &middot; {lab.courseName}
+                  </p>
+                </div>
 
-              {/* Deadline */}
-              <div className="col-span-3 flex items-center justify-center gap-1.5">
-                <Clock
-                  className={`w-3 h-3 shrink-0 ${
-                    deadline.urgent ? "text-red-400" : "text-white/30"
-                  }`}
-                />
-                <span
-                  className={`text-[11px] font-medium ${
-                    deadline.urgent ? "text-red-400" : "text-white/50"
-                  }`}
-                >
-                  {deadline.label}
-                </span>
-              </div>
+                {/* Deadline */}
+                <div className="col-span-3 flex items-center justify-center gap-1.5">
+                  <Clock
+                    className={`w-3 h-3 shrink-0 ${deadline.urgent ? "text-red-400" : "text-white/30"
+                      }`}
+                  />
+                  <span
+                    className={`text-[11px] font-medium ${deadline.urgent ? "text-red-400" : "text-white/50"
+                      }`}
+                  >
+                    {deadline.label}
+                  </span>
+                </div>
 
-              {/* Status chip */}
-              <div className="col-span-2 flex justify-center">
-                <span
-                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${statusCfg.bg} ${statusCfg.border} ${statusCfg.color}`}
-                >
-                  <StatusIcon className="w-2.5 h-2.5" />
-                  {statusCfg.label}
-                </span>
-              </div>
+                {/* Status chip */}
+                <div className="col-span-2 flex justify-center">
+                  <span
+                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${statusCfg.bg} ${statusCfg.border} ${statusCfg.color}`}
+                  >
+                    <StatusIcon className="w-2.5 h-2.5" />
+                    {statusCfg.label}
+                  </span>
+                </div>
 
-              {/* Marks */}
-              <div className="col-span-2">
-                <MarksDisplay lab={lab} />
+                {/* Marks */}
+                <div className="col-span-2">
+                  <MarksDisplay lab={lab} />
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          }))}
       </div>
 
       {/* ── Footer hint ── */}
