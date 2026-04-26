@@ -48,8 +48,8 @@ export function QuestionsChart() {
           <p className="text-white/40 text-[10px]">Daily performance for the current week</p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 bg-[#e6d15a] rounded-full shadow-[0_0_5px_#e6d15a]"></div>
-          <span className="text-white/60 text-[10px] font-medium tracking-wide">Correct</span>
+          <div className="w-2 h-2 bg-amber-300 rounded-full shadow-[0_0_5px_#e6d15a]"></div>
+          <span className="text-zinc-400 text-xs font-medium tracking-wide">Correct</span>
         </div>
       </div>
 
@@ -69,7 +69,7 @@ export function QuestionsChart() {
             return (
               <div key={index} className="flex flex-col justify-end items-center w-8 h-full group">
                 <div
-                  className="w-3 bg-[#e6d15a] rounded-t-sm transition-all duration-500 relative shadow-[0_0_10px_rgba(230,209,90,0.2)] group-hover:shadow-[0_0_15px_rgba(230,209,90,0.6)] group-hover:bg-[#fceb77]"
+                  className="w-3 bg-amber-300 rounded-t-sm transition-all duration-500 relative shadow-[0_0_10px_rgba(230,209,90,0.2)] group-hover:shadow-[0_0_15px_rgba(230,209,90,0.6)] group-hover:bg-[#fceb77]"
                   style={{ height: `${heightPct}%` }}
                 >
                   {count > 0 && (
@@ -84,7 +84,7 @@ export function QuestionsChart() {
         </div>
 
         {/* X-axis labels */}
-        <div className="absolute bottom-0 left-0 w-full flex justify-between text-[10px] text-white/20 px-8 font-semibold z-20">
+        <div className="absolute bottom-0 left-0 w-full flex justify-between text-[10px] text-zinc-400 px-8 font-semibold z-20">
           {["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"].map((d) => (
             <span key={d} className="w-8 text-center">{d}</span>
           ))}
@@ -105,19 +105,19 @@ export function NotesCard() {
         </button>
       </div>
 
-      <div className="w-16 h-16 rounded-full bg-[#121111] border border-white/5 flex items-center justify-center mb-4 mt-6">
+      <div className="w-16 h-16 rounded-full border border-white/5 flex items-center justify-center mb-4 mt-6">
         <svg className="w-6 h-6 text-white/20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
             d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
         </svg>
       </div>
       <h4 className="font-semibold text-sm mb-1">Nothing Here</h4>
-      <p className="text-white/40 text-[10px] leading-relaxed mb-4 max-w-[200px]">
+      <p className="text-zinc-500 text-xs leading-relaxed mb-4 max-w-[200px]">
         Start documenting your algorithm logic or contest strategies!
       </p>
       <a
         href="#"
-        className="text-[#e6d15a] text-[11px] font-semibold underline decoration-[#e6d15a]/30 hover:decoration-[#e6d15a] underline-offset-4 transition-all pb-6"
+        className="text-amber-300 text-xs font-semibold underline decoration-amber-300/30 hover:decoration-amber-300 underline-offset-4 transition-all pb-6"
       >
         Create first note
       </a>

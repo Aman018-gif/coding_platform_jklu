@@ -184,3 +184,108 @@ export const getGradesForClass = catchAsyncError(async (req, res, next) => {
     lookup,
   });
 });
+
+export const getDueSoonLabs = catchAsyncError(async (req, res, next) => {
+  // 1. Get all classes the student is enrolled in
+  const classes = await Class.find({ students: req.user._id }).select('_id name branch');
+  const classIds = classes.map(c => c._id);
+  
+  // Create a mapping to easily attach class info
+  const classMap = classes.reduce((acc, c) => {
+    acc[c._id.toString()] = c.name;
+    return acc;
+  }, {});
+
+  // 2. Find upcoming labs for those classes
+  const labs = await Lab.find({
+    class_id: { $in: classIds },
+    isVisible: true,
+    deadline: { $gte: new Date() }
+  }).sort({ deadline: 1 }).limit(10);
+
+  // 3. Format the response
+  const dueSoon = labs.map(lab => ({
+    _id: lab._id,
+    title: lab.title,
+    course: classMap[lab.class_id.toString()],
+    date: lab.deadline,
+    class_id: lab.class_id,
+  }));
+
+  res.status(200).json({
+    success: true,
+    dueSoon
+  });
+});
+
+export const getMyLabs = catchAsyncError(async (req, res, next) => {
+  // 1. Get all classes the student is enrolled in
+  const classes = await Class.find({ students: req.user._id }).select('_id name branch');
+  const classIds = classes.map(c => c._id);
+  
+  const classMap = classes.reduce((acc, c) => {
+    acc[c._id.toString()] = { name: c.name, branch: c.branch };
+    return acc;
+  }, {});
+
+  // 2. Find all visible labs for those classes
+  const labs = await Lab.find({
+    class_id: { $in: classIds },
+    isVisible: true,
+  }).sort({ deadline: 1 });
+
+  // 3. Find Accepted submissions for this user in these labs
+  const submissions = await Submission.find({
+    user_id: req.user._id,
+    lab_id: { $in: labs.map(l => l._id) },
+    status: "Accepted"
+  }).select('lab_id problem_id').lean();
+
+  const acceptedPerLab = {};
+  submissions.forEach(sub => {
+    if (!sub.lab_id) return;
+    const labId = sub.lab_id.toString();
+    if (!acceptedPerLab[labId]) {
+      acceptedPerLab[labId] = new Set();
+    }
+    if (sub.problem_id) {
+      acceptedPerLab[labId].add(sub.problem_id.toString());
+    }
+  });
+
+  const now = new Date();
+
+  // 4. Format the response
+  const myLabs = labs.map(lab => {
+    const numQuestions = lab.questions ? lab.questions.length : 0;
+    const labIdStr = lab._id.toString();
+    const acceptedCount = acceptedPerLab[labIdStr] ? acceptedPerLab[labIdStr].size : 0;
+
+    const maxMarks = numQuestions * 10;
+    const marksObtained = acceptedCount * 10;
+
+    let status = "pending";
+    if (numQuestions > 0 && acceptedCount === numQuestions) {
+      status = "graded";
+    } else if (lab.deadline && new Date(lab.deadline) < now) {
+      status = "overdue";
+    }
+
+    return {
+      id: lab._id,
+      title: lab.title,
+      courseCode: classMap[lab.class_id.toString()]?.branch || "N/A",
+      courseName: classMap[lab.class_id.toString()]?.name || "Unknown Course",
+      deadline: lab.deadline,
+      maxMarks,
+      marksObtained,
+      status
+    };
+  });
+
+  res.status(200).json({
+    success: true,
+    labs: myLabs
+  });
+});
+

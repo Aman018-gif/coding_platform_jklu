@@ -103,7 +103,7 @@ export function StreakCard({ user }) {
   return (
     <div className="bg-card-dark rounded-xl p-8 border border-white/5 flex flex-col items-center justify-center shadow-lg h-full">
       {/* Glowing sun icon */}
-      <div className="w-20 h-20 rounded-full bg-[#e6d15a]/10 flex items-center justify-center shadow-[0_0_40px_rgba(230,209,90,0.15)] mb-4">
+      {/* <div className="w-20 h-20 rounded-full bg-[#e6d15a]/10 flex items-center justify-center shadow-[0_0_40px_rgba(230,209,90,0.15)] mb-4">
         <div className="w-14 h-14 bg-[#e6d15a] rounded-full flex items-center justify-center shadow-[0_0_25px_rgba(230,209,90,0.6)]">
           <svg className="w-7 h-7 text-[#1a1a1a]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
             <circle cx="12" cy="12" r="4" />
@@ -111,14 +111,14 @@ export function StreakCard({ user }) {
               d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
           </svg>
         </div>
-      </div>
+      </div> */}
 
-      <h2 className="text-4xl font-bold mb-1">{streakDays}</h2>
-      <div className="text-[#e6d15a] text-[10px] font-bold tracking-widest uppercase mb-5">
+      <h2 className="text-5xl text-amber-300 font-bold mb-1">{streakDays}</h2>
+      <div className="text-zinc-300 text-[12px] font-bold tracking-widest uppercase mb-5">
         Day Streak
       </div>
 
-      <div className="flex gap-2 mb-3">
+      <div className="flex gap-4 mb-3">
         {["M", "T", "W", "T", "F", "S", "S"].map((day, i) => {
           const isComplete = i <= normalizedToday && streakDays > (normalizedToday - i);
           return (
@@ -127,7 +127,7 @@ export function StreakCard({ user }) {
                 {day}
               </span>
               <div className={`w-7 h-7 rounded flex items-center justify-center transition-all ${
-                isComplete ? "bg-[#e6d15a] shadow-[0_0_8px_rgba(230,209,90,0.4)]" : "bg-[#121111] border border-white/5"
+                isComplete ? "bg-amber-300 shadow-[0_0_8px_rgba(230,209,90,0.4)]" : "bg-zinc-700 border border-white/5"
               }`}>
                 {isComplete && (
                   <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
