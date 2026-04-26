@@ -11,16 +11,22 @@ import submissionRouter from "./routes/submissionRouter.js";
 import classRouter from "./routes/classRouter.js";
 import labRouter from "./routes/labRouter.js";
 import notificationRouter from "./routes/notificationRouter.js";
+import adminRouter from "./routes/adminRouter.js";
+import announcementRouter from "./routes/announcementRouter.js";
 import { removeUnverifiedAccounts } from "./automation/removeUnverifiedAccounts.js";
 import { startBadgeCron } from "./automation/badgeCron.js";
 export const app = express();
 config({ path: "./config.env" });
 
+// Trust the first proxy hop so req.ip reads X-Forwarded-For correctly
+// when behind Nginx, a load balancer, or any reverse proxy.
+app.set("trust proxy", 1);
+
 app.use(
   cors({
     origin: "http://localhost:5173",
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
@@ -35,6 +41,8 @@ app.use("/api/v1/submissions", submissionRouter);
 app.use("/api/v1/classes", classRouter);
 app.use("/api/v1/labs", labRouter);
 app.use("/api/v1/notifications", notificationRouter);
+app.use("/api/v1/admin", adminRouter);
+app.use("/api/v1/announcements", announcementRouter);
 
 removeUnverifiedAccounts();
 connection();

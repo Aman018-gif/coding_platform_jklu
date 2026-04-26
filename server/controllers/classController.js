@@ -1,6 +1,9 @@
 import { catchAsyncError } from "../middlewares/catchAsyncError.js";
 import ErrorHandler from "../middlewares/error.js";
 import { Class } from "../models/classModel.js";
+import { User } from "../models/userModel.js";
+import { createNotification } from "./notificationController.js";
+import { sendEmail } from "../utils/sendEmail.js";
 import crypto from "crypto";
 
 // Helper to generate a 6-character alphanumeric code
@@ -171,4 +174,61 @@ export const removeStudent = catchAsyncError(async (req, res, next) => {
     success: true,
     message: "Student removed successfully.",
   });
+});
+
+export const addStudentByEmail = catchAsyncError(async (req, res, next) => {
+  const { classId } = req.params;
+  const { email } = req.body;
+
+  if (!email) return next(new ErrorHandler("Email is required.", 400));
+
+  const classDetails = await Class.findById(classId);
+  if (!classDetails) return next(new ErrorHandler("Class not found.", 404));
+
+  if (classDetails.teacher.toString() !== req.user._id.toString() && req.user.role !== "Admin") {
+    return next(new ErrorHandler("Not authorized.", 403));
+  }
+
+  const student = await User.findOne({ email, accountVerified: true });
+  if (!student) return next(new ErrorHandler("No verified user found with that email.", 404));
+
+  if (classDetails.students.some((id) => id.toString() === student._id.toString())) {
+    return next(new ErrorHandler("Student is already enrolled.", 400));
+  }
+
+  classDetails.students.push(student._id);
+  await classDetails.save();
+
+  // In-app notification
+  await createNotification({
+    recipient: student._id,
+    sender: req.user._id,
+    type: "CLASS",
+    title: "Added to a Class",
+    message: `You have been added to "${classDetails.name}" by ${req.user.name}.`,
+    link: `/classes/${classId}`,
+  });
+
+  // Email — wrapped so a misconfigured SMTP doesn't fail the request
+  try {
+    await sendEmail({
+      email: student.email,
+      subject: `You've been added to ${classDetails.name}`,
+      message: `
+        <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;background:#f9f9f9;border-radius:8px">
+          <h2 style="color:#0b3d91;margin-bottom:8px">You've been enrolled!</h2>
+          <p style="color:#333">Hi <strong>${student.name}</strong>,</p>
+          <p style="color:#333">
+            <strong>${req.user.name}</strong> has added you to
+            <strong>${classDetails.name}</strong> on the JKLU Coding Platform.
+          </p>
+          <p style="color:#333">Log in to access class materials, labs, and contests.</p>
+          <p style="color:#999;font-size:12px;margin-top:24px">© JKLU Coding Platform</p>
+        </div>`,
+    });
+  } catch (err) {
+    console.error("[addStudentByEmail] Email failed:", err.message);
+  }
+
+  res.status(200).json({ success: true, message: "Student added.", student: { _id: student._id, name: student.name, email: student.email } });
 });

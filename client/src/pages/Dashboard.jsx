@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useMemo, useContext } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, UserCog } from "lucide-react";
+import { ChevronLeft, ChevronRight, UserCog, Shield, GraduationCap } from "lucide-react";
 import { Context } from "../main";
 import api from "../api/client";
 import { toast } from "react-toastify";
@@ -111,6 +111,8 @@ export default function Dashboard() {
   }, []);
 
   if (!isAuthenticated) return <Navigate to="/auth" />;
+  if (user?.role === "Admin") return <Navigate to="/admin" replace />;
+  if (user?.role === "Teacher") return <Navigate to="/teacher-dashboard" replace />;
 
   // Get current contest for hero
   const currentContest = heroContests[currentIndex];
@@ -130,16 +132,36 @@ export default function Dashboard() {
               </p>
             </div>
             
-            {/* TA Dashboard Toggle Button — only visible to TA users */}
-            {user?.role === "TA" && (
-              <button
-                onClick={() => navigate("/ta-dashboard")}
-                className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg bg-white/5 text-white border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all group"
-              >
-                <UserCog size={18} className="text-slate-400 group-hover:text-white transition-colors" />
-                Switch to TA Dashboard
-              </button>
-            )}
+            {/* Role-based dashboard buttons */}
+            <div className="flex gap-2 flex-wrap">
+              {user?.role === "TA" && (
+                <button
+                  onClick={() => navigate("/ta-dashboard")}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg bg-white/5 text-white border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all group"
+                >
+                  <UserCog size={16} className="text-slate-400 group-hover:text-white transition-colors" />
+                  TA Dashboard
+                </button>
+              )}
+              {(user?.role === "Teacher" || user?.role === "Admin") && (
+                <button
+                  onClick={() => navigate("/teacher-dashboard")}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg bg-white/5 text-white border border-white/10 hover:bg-amber-400/10 hover:border-amber-400/20 hover:text-amber-400 transition-all group"
+                >
+                  <GraduationCap size={16} className="text-zinc-400 group-hover:text-amber-400 transition-colors" />
+                  Teacher Dashboard
+                </button>
+              )}
+              {user?.role === "Admin" && (
+                <button
+                  onClick={() => navigate("/admin")}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg bg-amber-400/10 text-amber-400 border border-amber-400/20 hover:bg-amber-400/20 transition-all"
+                >
+                  <Shield size={16} />
+                  Admin Panel
+                </button>
+              )}
+            </div>
           </div>
           {/* -------------------------- */}
 

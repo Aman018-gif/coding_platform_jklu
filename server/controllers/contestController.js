@@ -6,7 +6,8 @@ import { Submission } from "../models/submissionModel.js";
 import { User } from "../models/userModel.js";
 import mongoose from "mongoose";
 import { ContestLeaderboard } from "../models/leaderboardModel.js";
-import { calculateWeeklyBadges } from "../utils/badgeCalculator.js";  // NEW
+import { calculateWeeklyBadges } from "../utils/badgeCalculator.js";
+import { IpLog } from "../models/ipLogModel.js";
 
 export const getContests = catchAsyncError(async (req, res, next) => {
   const contests = await Contest.find().sort({ start_time: -1 }).lean();
@@ -65,6 +66,9 @@ export const registerForContest = catchAsyncError(async (req, res, next) => {
   await User.findByIdAndUpdate(req.user._id, {
     $inc: { "contest_attendance.registered": 1 },
   });
+
+  const regIp = (req.ip || req.socket?.remoteAddress || "unknown").replace(/^::ffff:/, "");
+  IpLog.create({ contest_id: req.params.id, user_id: req.user._id, ip: regIp, event: "register" }).catch(() => {});
 
   res.status(200).json({ success: true, message: "Registered successfully!" });
 });

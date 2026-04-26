@@ -73,6 +73,24 @@ export const getProblems = catchAsyncError(async (req, res, next) => {
   return res.status(200).json({ success: true, problems });
 });
 
+export const updateProblem = catchAsyncError(async (req, res, next) => {
+  const problem = await Problem.findById(req.params.id);
+  if (!problem) return next(new ErrorHandler("Problem not found.", 404));
+
+  const fields = ["title", "description", "difficulty", "category", "time_limit", "memory_limit", "input_format", "constraints", "test_cases", "order_index"];
+  fields.forEach((f) => {
+    if (req.body[f] !== undefined) problem[f] = req.body[f];
+  });
+  await problem.save();
+  return res.status(200).json({ success: true, problem });
+});
+
+export const deleteProblem = catchAsyncError(async (req, res, next) => {
+  const problem = await Problem.findByIdAndDelete(req.params.id);
+  if (!problem) return next(new ErrorHandler("Problem not found.", 404));
+  return res.status(200).json({ success: true, message: "Problem deleted." });
+});
+
 export const getProblemById = catchAsyncError(async (req, res, next) => {
   const problem = await Problem.findById(req.params.id).lean();
   if (!problem) return next(new ErrorHandler("Problem not found.", 404));

@@ -2,6 +2,7 @@ import { catchAsyncError } from "../middlewares/catchAsyncError.js";
 import ErrorHandler from "../middlewares/error.js";
 import { Lab } from "../models/labModel.js";
 import { Class } from "../models/classModel.js";
+import { Submission } from "../models/submissionModel.js";
 import { createNotification } from "./notificationController.js";
 
 export const createLab = catchAsyncError(async (req, res, next) => {
@@ -138,5 +139,48 @@ export const getLabDetails = catchAsyncError(async (req, res, next) => {
   res.status(200).json({
     success: true,
     lab,
+  });
+});
+
+export const getGradesForClass = catchAsyncError(async (req, res, next) => {
+  const { classId } = req.params;
+  const classDetails = await Class.findById(classId)
+    .populate("students", "name email")
+    .lean();
+  if (!classDetails) return next(new ErrorHandler("Class not found.", 404));
+
+  const isTeacher = classDetails.teacher.toString() === req.user._id.toString();
+  if (!isTeacher && req.user.role !== "Admin") {
+    return next(new ErrorHandler("Not authorized.", 403));
+  }
+
+  const labs = await Lab.find({ class_id: classId })
+    .populate("questions", "title difficulty")
+    .lean();
+
+  const studentIds = classDetails.students.map((s) => s._id);
+  const allProblemIds = [
+    ...new Set(labs.flatMap((l) => l.questions.map((q) => q._id.toString()))),
+  ];
+
+  const submissions = await Submission.find({
+    user_id: { $in: studentIds },
+    problem_id: { $in: allProblemIds },
+    class_id: classId,
+  })
+    .select("user_id problem_id lab_id status")
+    .lean();
+
+  const lookup = {};
+  for (const sub of submissions) {
+    const key = `${sub.user_id}:${sub.problem_id}:${sub.lab_id}`;
+    if (!lookup[key] || sub.status === "Accepted") lookup[key] = sub.status;
+  }
+
+  return res.status(200).json({
+    success: true,
+    labs,
+    students: classDetails.students,
+    lookup,
   });
 });

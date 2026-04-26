@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import ReactDOM from "react-dom";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { ChevronLeft, Trash2, Loader2 } from "lucide-react";
 import clsx from "clsx";
 import MainLayout from "../layout/MainLayout";
@@ -17,9 +17,15 @@ import ParticipantsTab from "../components/CreateContest/Tabs/ParticipantsTab";
 import { useContestForm, TABS } from "../hooks/useContestForm";
 import { fetchContestBySlug, fetchMyContests, fetchContestById } from "../api/contestApi";
 
-export default function CreateContestPage() {
+export default function CreateContestPage({ isEmbedded = false, onBack } = {}) {
   const { user: currentUser } = useContext(Context);
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+
+  const backDest =
+    currentUser?.role === "Teacher" || currentUser?.role === "Admin"
+      ? "/teacher-dashboard"
+      : "/ta-dashboard";
   const editId = searchParams.get("edit");
   const [isLoadingEdit, setIsLoadingEdit] = useState(false);
   
@@ -206,17 +212,16 @@ export default function CreateContestPage() {
     return ReactDOM.createPortal(modalContent, document.body);
   };
 
-  return (
-    <MainLayout>
-      <main className="max-w-5xl mx-auto px-4 py-8 space-y-8">
+  const pageBody = (
+    <main className="max-w-5xl mx-auto px-4 py-8 space-y-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
-            <Link
-              to="/ta-dashboard"
+            <button
+              onClick={() => (onBack ? onBack() : navigate(backDest))}
               className="text-muted hover:text-white text-sm font-medium flex items-center gap-1 mb-4 w-fit transition-colors"
             >
               <ChevronLeft size={16} /> Back to Dashboard
-            </Link>
+            </button>
             <h1 className="text-3xl font-bold text-white tracking-tight">
               {isLoadingEdit ? "Loading..." : editId || contestCreated ? "Edit Contest" : "Create New Contest"}
             </h1>
@@ -487,6 +492,14 @@ export default function CreateContestPage() {
 
         {renderDeleteModal()}
       </main>
-    </MainLayout>
   );
+
+  if (isEmbedded) {
+    return (
+      <div className="fixed inset-0 z-50 bg-zinc-900 text-white overflow-y-auto">
+        {pageBody}
+      </div>
+    );
+  }
+  return <MainLayout>{pageBody}</MainLayout>;
 }

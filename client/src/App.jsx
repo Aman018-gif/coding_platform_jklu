@@ -20,6 +20,8 @@ import CreateContestPage from "./pages/CreateContestPage";
 import TADashboard from "./pages/TADashboard";
 import ManageContestPage from "./pages/ManageContestPage";
 import ProfilePage from "./pages/ProfilePage";
+import AdminDashboard from "./pages/AdminDashboard";
+import TeacherDashboard from "./pages/TeacherDashboard";
 
 const API_BASE = "http://localhost:4000/api/v1";
 
@@ -65,6 +67,8 @@ const App = () => {
           <Route path="/ta-dashboard" element={<TADashboard />} />
           <Route path="/manage-contest/:id" element={<ManageContestPage />} />
           <Route path="/create-contest" element={<CreateContestPage />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
         </Routes>
         <ToastContainer theme="colored" />
       </Router>

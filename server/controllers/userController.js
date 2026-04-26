@@ -1,6 +1,7 @@
 import ErrorHandler from "../middlewares/error.js";
 import { catchAsyncError } from "../middlewares/catchAsyncError.js";
 import { User } from "../models/userModel.js";
+import { TeacherWhitelist } from "../models/teacherWhitelistModel.js";
 import { Badge } from "../models/badgeModel.js";
 import { Submission } from "../models/submissionModel.js";
 import { sendEmail } from "../utils/sendEmail.js";
@@ -15,7 +16,7 @@ const client = twilio(process.env.TWILIO_SID, process.env.TWILIO_AUTH_TOKEN);
 
 export const register = catchAsyncError(async (req, res, next) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, role } = req.body;
     if (!name || !email || !password) {
       return next(new ErrorHandler("All fields are required.", 400));
     }
@@ -36,7 +37,10 @@ export const register = catchAsyncError(async (req, res, next) => {
         )
       );
     }
-    const userData = { name, email, password };
+    // Only Student and Teacher are self-selectable; Admin/TA are assigned by admin
+    const allowedRoles = ["Student", "Teacher"];
+    const assignedRole = allowedRoles.includes(role) ? role : "Student";
+    const userData = { name, email, password, role: assignedRole };
     const user = await User.create(userData);
     const verificationCode = await user.generateVerificationCode();
     await user.save();
@@ -127,6 +131,21 @@ export const verifyOTP = catchAsyncError(async (req, res, next) => {
     if (currentTime > verificationCodeExpire) {
       return next(new ErrorHandler("OTP Expired.", 400));
     }
+    // Teacher whitelist check — runs only if the user registered with the Teacher role
+    if (user.role === "Teacher") {
+      const whitelistEntry = await TeacherWhitelist.findOne({
+        email: user.email.toLowerCase(),
+        usedAt: null,
+      });
+      if (whitelistEntry) {
+        whitelistEntry.usedAt = new Date();
+        await whitelistEntry.save();
+      } else {
+        // Not pre-approved — silently downgrade to Student
+        user.role = "Student";
+      }
+    }
+
     user.accountVerified = true;
     user.verificationCode = null;
     user.verificationCodeExpire = null;

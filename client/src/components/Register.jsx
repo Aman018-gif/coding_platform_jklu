@@ -1,5 +1,5 @@
 import React, { useState, useContext } from "react";
-import { User, AtSign, Lock, Eye, EyeOff } from "lucide-react";
+import { User, AtSign, Lock, Eye, EyeOff, Info } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { Context } from "../main";
 import { useNavigate } from "react-router-dom";
@@ -12,8 +12,11 @@ const Register = () => {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
-  } = useForm();
+  } = useForm({ defaultValues: { role: "Student" } });
+
+  const selectedRole = watch("role");
 
   const handleRegister = async (data) => {
     try {
@@ -114,6 +117,49 @@ const Register = () => {
             </button>
           </div>
         </div>
+
+        {/* Role Selection */}
+        <div data-purpose="input-group">
+          <label className="block text-xs font-medium text-zinc-500 uppercase tracking-wider mb-2">
+            I am a
+          </label>
+          <div className="grid grid-cols-2 gap-3">
+            {["Student", "Teacher"].map((role) => (
+              <label
+                key={role}
+                className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                  selectedRole === role
+                    ? "border-accent-yellow bg-accent-yellow/5 text-white"
+                    : "border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:border-zinc-600"
+                }`}
+              >
+                <input
+                  type="radio"
+                  value={role}
+                  {...register("role")}
+                  className="sr-only"
+                />
+                <span
+                  className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                    selectedRole === role ? "border-accent-yellow" : "border-zinc-600"
+                  }`}
+                >
+                  {selectedRole === role && (
+                    <span className="w-2 h-2 rounded-full bg-accent-yellow" />
+                  )}
+                </span>
+                <span className="text-sm font-medium">{role}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {selectedRole === "Teacher" && (
+          <p className="flex items-start gap-1.5 text-xs text-amber-400/80 bg-amber-400/5 border border-amber-400/15 rounded-lg px-3 py-2">
+            <Info size={12} className="mt-0.5 flex-shrink-0" />
+            Your email must be pre-approved by an admin. If it isn't, your account will be created as a Student.
+          </p>
+        )}
 
         {/* Submit Button */}
         <button
