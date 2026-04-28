@@ -218,12 +218,18 @@ export default function Navbar({ onLogoClick, onNavClick }) {
                             className="flex items-center gap-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-full pl-1 pr-3 py-1 transition-colors"
                         >
                             <div className="w-9 h-9 rounded-full bg-cover bg-center border-2 border-transparent hover:border-brand-yellow transition-colors overflow-hidden">
+                            {/* Profile avatar — uses uploaded image if set, otherwise initials */}
+                            {user?.avatar ? (
                                 <img
-                                    src="https://picsum.photos/seed/user123/100/100"
+                                    src={user.avatar}
                                     alt="Profile"
                                     className="w-full h-full object-cover"
-                                    referrerPolicy="no-referrer"
                                 />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center bg-brand-yellow/20 text-brand-yellow font-bold text-sm select-none">
+                                    {user?.name?.[0]?.toUpperCase() ?? "?"}
+                                </div>
+                            )}
                             </div>
                             <ChevronDown
                                 size={16}

@@ -289,7 +289,7 @@ const ImageUploadField = ({ label, value, onChange, previewClassName, onError })
 // ProfilePage
 // ---------------------------------------------------------------------------
 const ProfilePage = () => {
-  const { user } = useContext(Context);
+  const { user, setUser } = useContext(Context);
 
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading]         = useState(true);
@@ -345,6 +345,8 @@ const ProfilePage = () => {
 
       const { data } = await api.put('/user/profile', payload);
       setProfileData(prev => ({ ...prev, ...data.profile }));
+      // Sync the global Context user so the Navbar avatar updates immediately
+      setUser(prev => ({ ...prev, avatar: data.profile.avatar ?? prev.avatar, name: data.profile.name ?? prev.name }));
       setIsEditing(false);
     } catch (err) {
       console.error('Failed to update profile:', err);
