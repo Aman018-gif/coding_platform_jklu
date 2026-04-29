@@ -92,7 +92,7 @@ To run this project locally, you will need to set up environment variables in yo
 
 ```env
 # Server Configuration
-PORT=5000
+PORT=4000
 
 # Database Connection
 DATABASE_URI=<your_mongodb_connection_string>

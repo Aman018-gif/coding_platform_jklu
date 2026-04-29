@@ -22,7 +22,8 @@ const StatusBadge = (status)=>{
   return <span className="text-slate-300 font-medium">{status}</span>
 }
 
-export default function Submissions({ isWidget = false, limit, contestId }) {
+export default function Submissions({ isWidget = false, limit, contestId, labId }) {
+
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -36,7 +37,10 @@ export default function Submissions({ isWidget = false, limit, contestId }) {
         let url = `${API_BASE_URL}/api/v1/submissions`;
         if (contestId) {
           url += `?contest_id=${contestId}`;
+        } else if (labId) {
+          url += `?lab_id=${labId}`;
         }
+
 
         const res = await fetch(url, {
           method: "GET",
@@ -66,7 +70,8 @@ export default function Submissions({ isWidget = false, limit, contestId }) {
     };
 
     fetchSubmissions();
-  }, [limit, contestId]);
+  }, [limit, contestId, labId]);
+
 
   return (
     <div className={isWidget ? "" : "mb-6"}>

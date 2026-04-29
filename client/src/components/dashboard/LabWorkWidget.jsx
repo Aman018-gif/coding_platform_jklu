@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+
 import api from "../../api/client";
 import { BookOpen, Clock, CheckCircle2, AlertCircle, Circle, Loader2 } from "lucide-react";
 
@@ -126,12 +128,13 @@ export default function LabWorkWidget() {
             </p>
           </div>
         </div>
-        <a
-          href="/my-classes"
+        <Link
+          to="/my-classes"
           className="text-[11px] font-semibold text-[#e6d15a] hover:text-white transition-colors"
         >
           View All
-        </a>
+        </Link>
+
       </div>
 
       {/* ── Column Headers ── */}
@@ -167,10 +170,12 @@ export default function LabWorkWidget() {
             const StatusIcon = statusCfg.icon;
 
             return (
-              <div
+              <Link
                 key={lab.id}
-                className="grid grid-cols-12 gap-3 px-6 py-3.5 items-center hover:bg-white/[0.02] transition-colors group"
+                to={`/class/${lab.class_id}/labs/${lab.id}`}
+                className="grid grid-cols-12 gap-3 px-6 py-3.5 items-center hover:bg-white/[0.02] transition-colors group cursor-pointer"
               >
+
                 {/* Lab name + course */}
                 <div className="col-span-5 min-w-0">
                   <p className="text-[13px] font-medium text-white truncate group-hover:text-[#e6d15a] transition-colors">
@@ -212,7 +217,7 @@ export default function LabWorkWidget() {
                 <div className="col-span-2">
                   <MarksDisplay lab={lab} />
                 </div>
-              </div>
+              </Link>
             );
           }))}
       </div>

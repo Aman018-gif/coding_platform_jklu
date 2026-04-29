@@ -167,7 +167,7 @@ function ClassworkTab({ cls }) {
   const [modal, setModal] = useState(null);
   const [problems, setProblems] = useState([]);
   const [probSearch, setProbSearch] = useState("");
-  const [form, setForm] = useState({ title: "", deadline: "", isVisible: true, questions: [] });
+  const [form, setForm] = useState({ title: "", deadline: "", totalMarks: "", isVisible: true, questions: [] });
   const [saving, setSaving] = useState(false);
   const [createProbModal, setCreateProbModal] = useState(false);
   const [newProb, setNewProb] = useState({ title: "", description: "", difficulty: "MEDIUM", category: "", time_limit: 2, memory_limit: 256, test_cases: [{ input: "", expected_output: "", is_sample: true }] });
@@ -184,18 +184,19 @@ function ClassworkTab({ cls }) {
 
   useEffect(() => { fetchLabs(); fetchProblems(); }, [fetchLabs, fetchProblems]);
 
-  const openCreate = () => { setForm({ title: "", deadline: "", isVisible: true, questions: [] }); setModal("create"); };
-  const openEdit = (lab) => { setForm({ title: lab.title, deadline: lab.deadline ? new Date(lab.deadline).toISOString().slice(0, 16) : "", isVisible: lab.isVisible, questions: lab.questions.map((q) => q._id) }); setModal({ mode: "edit", id: lab._id }); };
+  const openCreate = () => { setForm({ title: "", deadline: "", totalMarks: "", isVisible: true, questions: [] }); setModal("create"); };
+  const openEdit = (lab) => { setForm({ title: lab.title, deadline: lab.deadline ? new Date(lab.deadline).toISOString().slice(0, 16) : "", totalMarks: lab.totalMarks ?? "", isVisible: lab.isVisible, questions: lab.questions.map((q) => q._id) }); setModal({ mode: "edit", id: lab._id }); };
 
   const saveLab = async () => {
     if (!form.title) { toast.error("Title required"); return; }
     setSaving(true);
     try {
+      const totalMarks = form.totalMarks !== "" ? Number(form.totalMarks) : null;
       if (modal === "create") {
-        await api.post("/labs/create", { class_id: cls._id, title: form.title, deadline: form.deadline || undefined, isVisible: form.isVisible, questions: form.questions });
+        await api.post("/labs/create", { class_id: cls._id, title: form.title, deadline: form.deadline || undefined, totalMarks, isVisible: form.isVisible, questions: form.questions });
         toast.success("Lab created");
       } else {
-        await api.put(`/labs/${modal.id}/update`, { title: form.title, deadline: form.deadline || undefined, isVisible: form.isVisible, questions: form.questions });
+        await api.put(`/labs/${modal.id}/update`, { title: form.title, deadline: form.deadline || undefined, totalMarks, isVisible: form.isVisible, questions: form.questions });
         toast.success("Lab updated");
       }
       setModal(null);
@@ -254,6 +255,7 @@ function ClassworkTab({ cls }) {
                 </div>
                 <div className="flex items-center gap-4 text-xs text-zinc-400">
                   <span>{lab.questions?.length ?? 0} problems</span>
+                  {lab.totalMarks != null && <span className="text-amber-400 font-medium">{lab.totalMarks} marks</span>}
                   {lab.deadline && <span className="flex items-center gap-1"><CalendarDays size={11} /> {new Date(lab.deadline).toLocaleDateString()}</span>}
                 </div>
               </div>
@@ -286,10 +288,21 @@ function ClassworkTab({ cls }) {
           }
         >
           <Input label="Lab Title *" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} placeholder="e.g. Lab 1 — Arrays" />
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="text-xs text-zinc-400 mb-1 block">Deadline (optional)</label>
               <input type="datetime-local" value={form.deadline} onChange={(e) => setForm((f) => ({ ...f, deadline: e.target.value }))} className="w-full bg-zinc-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-400/50" />
+            </div>
+            <div>
+              <label className="text-xs text-zinc-400 mb-1 block">Total Marks (optional)</label>
+              <input
+                type="number"
+                min="0"
+                value={form.totalMarks}
+                onChange={(e) => setForm((f) => ({ ...f, totalMarks: e.target.value }))}
+                placeholder="e.g. 100"
+                className="w-full bg-zinc-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-amber-400/50"
+              />
             </div>
             <div className="flex items-end pb-0.5">
               <label className="flex items-center gap-2 text-sm text-zinc-300 cursor-pointer">
@@ -383,19 +396,18 @@ function ClassworkTab({ cls }) {
 
 // ── PEOPLE TAB ────────────────────────────────────────────────────────────────
 function PeopleTab({ cls, onRefresh }) {
-  const [students, setStudents] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [joinOpen, setJoinOpen] = useState(cls.joiningOpen);
+  // cls.students comes from getClasses which populates {name, email}
+  // We don't call getClassDetails because it may not populate students
+  const [students, setStudents] = useState(
+    Array.isArray(cls.students) && cls.students.length > 0 && cls.students[0]?._id
+      ? cls.students
+      : []
+  );
+  const [loading, setLoading] = useState(false);
+  const [joinOpen, setJoinOpen] = useState(cls.joiningOpen ?? true);
   const [addEmail, setAddEmail] = useState("");
   const [adding, setAdding] = useState(false);
   const [copied, setCopied] = useState(false);
-
-  useEffect(() => {
-    api.get(`/classes/${cls._id}`).then(({ data }) => {
-      setStudents(data.classDetails.students || []);
-      setJoinOpen(data.classDetails.joiningOpen);
-    }).catch(() => toast.error("Failed")).finally(() => setLoading(false));
-  }, [cls._id]);
 
   const copyCode = () => {
     navigator.clipboard.writeText(cls.joinCode);
@@ -437,7 +449,7 @@ function PeopleTab({ cls, onRefresh }) {
     try {
       await api.delete(`/classes/${cls._id}/student/${studentId}`);
       toast.success("Student removed");
-      setStudents((s) => s.filter((st) => st._id !== studentId));
+      setStudents((s) => s.filter((st) => String(st._id) !== String(studentId)));
     } catch { toast.error("Failed"); }
   };
 
@@ -516,7 +528,26 @@ function GradesTab({ cls }) {
   if (!data) return null;
 
   const { labs, students, lookup } = data;
-  const columns = labs.flatMap((lab) => lab.questions.map((q) => ({ lab, problem: q, label: `${lab.title} › ${q.title}` })));
+
+  // Each lab gets its problem columns + a Score column at the end
+  const columns = labs.flatMap((lab) => [
+    ...lab.questions.map((q) => ({ type: "problem", lab, problem: q, label: `${lab.title} › ${q.title}` })),
+    { type: "score", lab, label: `${lab.title} — Score` },
+  ]);
+
+  // Score for one student in one lab
+  const calcLabScore = (student, lab) => {
+    const accepted = lab.questions.filter(
+      (q) => lookup[`${student._id}:${q._id}:${lab._id}`] === "Accepted"
+    ).length;
+    const total = lab.questions.length;
+    if (!total) return { display: "—", earned: 0, max: lab.totalMarks ?? 0 };
+    if (lab.totalMarks != null) {
+      const earned = Math.round((accepted / total) * lab.totalMarks);
+      return { display: `${earned} / ${lab.totalMarks}`, earned, max: lab.totalMarks };
+    }
+    return { display: `${accepted} / ${total}`, earned: accepted, max: total };
+  };
 
   const statusCell = (status) => {
     if (!status) return <span className="text-zinc-600 text-base">—</span>;
@@ -524,15 +555,21 @@ function GradesTab({ cls }) {
     return <span className="text-red-400 text-base">✗</span>;
   };
 
+  // Build CSV rows — include per-lab scores and grand score
   const rows = students.map((s) => {
     const row = { Name: s.name, Email: s.email };
-    let solved = 0;
-    columns.forEach(({ lab, problem }) => {
-      const st = lookup[`${s._id}:${problem._id}:${lab._id}`];
-      row[`${lab.title} › ${problem.title}`] = st || "Missing";
-      if (st === "Accepted") solved++;
+    let grandEarned = 0, grandMax = 0;
+    labs.forEach((lab) => {
+      lab.questions.forEach((q) => {
+        const st = lookup[`${s._id}:${q._id}:${lab._id}`];
+        row[`${lab.title} › ${q.title}`] = st || "Missing";
+      });
+      const sc = calcLabScore(s, lab);
+      row[`${lab.title} — Score`] = sc.display;
+      grandEarned += sc.earned;
+      grandMax += sc.max;
     });
-    row["Total Solved"] = `${solved}/${columns.length}`;
+    row["Grand Score"] = grandMax > 0 ? `${grandEarned} / ${grandMax}` : "—";
     return row;
   });
 
@@ -540,7 +577,7 @@ function GradesTab({ cls }) {
     { key: "Name", label: "Name" },
     { key: "Email", label: "Email" },
     ...columns.map((c) => ({ key: c.label, label: c.label })),
-    { key: "Total Solved", label: "Total Solved" },
+    { key: "Grand Score", label: "Grand Score" },
   ];
 
   return (
@@ -616,37 +653,27 @@ function GradesTab({ cls }) {
 }
 
 // ── MY CONTESTS TAB ───────────────────────────────────────────────────────────
-function ContestsTab() {
+function ContestsTab({ onCreateExam, cls }) {
   const navigate = useNavigate();
   const [contests, setContests] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showCreate, setShowCreate] = useState(false);
 
   const fetchContests = () => {
     setLoading(true);
-    api.get("/contests/my").then(({ data }) => setContests(data.contests || [])).catch(() => toast.error("Failed")).finally(() => setLoading(false));
+    api.get(`/exams/class/${cls._id}`).then(({ data }) => setContests(data.exams || [])).catch(() => toast.error("Failed to load exams")).finally(() => setLoading(false));
   };
 
   useEffect(() => { fetchContests(); }, []);
-
-  if (showCreate) {
-    return (
-      <CreateContestPage
-        isEmbedded
-        onBack={() => { setShowCreate(false); fetchContests(); }}
-      />
-    );
-  }
 
   const now = new Date();
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold font-display text-white">My Contests</h3>
-        <Btn onClick={() => setShowCreate(true)}><Plus size={14} /> Create Contest</Btn>
+        <h3 className="text-lg font-semibold font-display text-white">My Exams</h3>
+        <Btn onClick={onCreateExam}><Plus size={14} /> Create Exam</Btn>
       </div>
       {loading ? <div className="flex justify-center py-10"><Loader2 className="animate-spin text-amber-400" size={24} /></div>
-        : contests.length === 0 ? <Card><p className="text-center text-zinc-500 py-6">No contests yet.</p></Card>
+        : contests.length === 0 ? <Card><p className="text-center text-zinc-500 py-6">No exams yet. Create your first exam.</p></Card>
         : (
           <div className="space-y-3">
             {contests.map((c) => {
@@ -667,7 +694,7 @@ function ContestsTab() {
                       {start.toLocaleDateString()} — {end.toLocaleDateString()} · {c.participants?.length ?? 0} participants · {c.problems?.length ?? 0} problems
                     </p>
                   </div>
-                  <Btn variant="ghost" size="sm" onClick={() => navigate(`/manage-contest/${c._id}`)}>
+                  <Btn variant="ghost" size="sm" onClick={() => navigate(`/manage-exam/${c._id}`)}>
                     <ExternalLink size={13} /> Manage
                   </Btn>
                 </Card>
@@ -683,12 +710,12 @@ function ContestsTab() {
 const TABS = [
   { key: "stream", label: "Stream", icon: Megaphone },
   { key: "classwork", label: "Classwork", icon: ClipboardList },
+  { key: "contests", label: "Examination", icon: GraduationCap },
   { key: "people", label: "People", icon: Users },
   { key: "grades", label: "Grades", icon: BarChart2 },
-  { key: "contests", label: "My Contests", icon: Trophy },
 ];
 
-function ClassWorkspace({ cls, onBack }) {
+function ClassWorkspace({ cls, onBack, onCreateExam }) {
   const [tab, setTab] = useState("stream");
   const [codeCopied, setCodeCopied] = useState(false);
 
@@ -732,7 +759,7 @@ function ClassWorkspace({ cls, onBack }) {
         {tab === "classwork" && <ClassworkTab cls={cls} />}
         {tab === "people" && <PeopleTab cls={cls} />}
         {tab === "grades" && <GradesTab cls={cls} />}
-        {tab === "contests" && <ContestsTab />}
+        {tab === "contests" && <ContestsTab onCreateExam={onCreateExam} cls={cls} />}
       </div>
     </div>
   );
@@ -784,6 +811,7 @@ export default function TeacherDashboard() {
   const [loadingClasses, setLoadingClasses] = useState(true);
   const [selectedClass, setSelectedClass] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showCreateExam, setShowCreateExam] = useState(false);
 
   const handleSignOut = async () => {
     try { await api.get("/user/logout"); } catch { /* ignore */ }
@@ -798,6 +826,19 @@ export default function TeacherDashboard() {
 
   if (!isAuthenticated) return <Navigate to="/auth" />;
   if (!["Teacher", "Admin"].includes(user?.role)) return <Navigate to="/" />;
+
+  if (showCreateExam) {
+    return (
+      <div className="min-h-screen bg-zinc-900 text-white font-sans">
+        <CreateContestPage
+          isEmbedded
+          isExam
+          classId={selectedClass?._id}
+          onBack={() => setShowCreateExam(false)}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-zinc-900 flex font-sans text-white">
@@ -855,7 +896,7 @@ export default function TeacherDashboard() {
 
       <main className="flex-1 flex flex-col overflow-hidden">
         {selectedClass ? (
-          <ClassWorkspace cls={selectedClass} onBack={() => setSelectedClass(null)} />
+          <ClassWorkspace key={selectedClass._id} cls={selectedClass} onBack={() => setSelectedClass(null)} onCreateExam={() => setShowCreateExam(true)} />
         ) : (
           <div className="flex-1 flex items-center justify-center p-8">
             <div className="text-center max-w-sm">
@@ -864,7 +905,7 @@ export default function TeacherDashboard() {
               </div>
               <h2 className="text-xl font-semibold font-display text-white mb-2">Teacher Dashboard</h2>
               <p className="text-zinc-400 text-sm mb-6">Select a class from the sidebar to manage its stream, labs, students, grades, and contests.</p>
-              <Btn onClick={() => setShowCreateModal(true)} className="mx-auto"><Plus size={15} /> Create Your First Class</Btn>
+              <Btn onClick={() => setShowCreateModal(true)} className="mx-auto"><Plus size={15} /> Create a Class</Btn>
             </div>
           </div>
         )}

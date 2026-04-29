@@ -5,6 +5,7 @@ const labSchema = new mongoose.Schema({
   title: { type: String, required: true },
   questions: [{ type: mongoose.Schema.Types.ObjectId, ref: "Problem" }],
   deadline: { type: Date },
+  totalMarks: { type: Number, default: null },
   isVisible: { type: Boolean, default: true },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   createdAt: { type: Date, default: Date.now },
