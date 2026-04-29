@@ -13,6 +13,7 @@ import labRouter from "./routes/labRouter.js";
 import notificationRouter from "./routes/notificationRouter.js";
 import adminRouter from "./routes/adminRouter.js";
 import announcementRouter from "./routes/announcementRouter.js";
+import noteRouter from "./routes/noteRoutes.js";
 import { removeUnverifiedAccounts } from "./automation/removeUnverifiedAccounts.js";
 import { startBadgeCron } from "./automation/badgeCron.js";
 export const app = express();
@@ -43,6 +44,7 @@ app.use("/api/v1/labs", labRouter);
 app.use("/api/v1/notifications", notificationRouter);
 app.use("/api/v1/admin", adminRouter);
 app.use("/api/v1/announcements", announcementRouter);
+app.use("/api/v1/notes", noteRouter);
 
 removeUnverifiedAccounts();
 connection();
