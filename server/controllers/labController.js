@@ -6,7 +6,7 @@ import { Submission } from "../models/submissionModel.js";
 import { createNotification } from "./notificationController.js";
 
 export const createLab = catchAsyncError(async (req, res, next) => {
-  const { class_id, title, questions, deadline, isVisible } = req.body;
+  const { class_id, title, questions, deadline, totalMarks, isVisible } = req.body;
 
   if (!class_id || !title || !questions) {
     return next(new ErrorHandler("Please provide class_id, title, and questions.", 400));
@@ -26,6 +26,7 @@ export const createLab = catchAsyncError(async (req, res, next) => {
     title,
     questions,
     deadline,
+    totalMarks: totalMarks != null ? Number(totalMarks) : null,
     isVisible: isVisible !== undefined ? isVisible : true,
     createdBy: req.user._id,
   });
@@ -53,7 +54,7 @@ export const createLab = catchAsyncError(async (req, res, next) => {
 
 export const updateLab = catchAsyncError(async (req, res, next) => {
   const labId = req.params.id;
-  const { title, questions, deadline, isVisible } = req.body;
+  const { title, questions, deadline, totalMarks, isVisible } = req.body;
 
   let lab = await Lab.findById(labId);
 
@@ -70,6 +71,7 @@ export const updateLab = catchAsyncError(async (req, res, next) => {
   lab.title = title || lab.title;
   lab.questions = questions || lab.questions;
   lab.deadline = deadline !== undefined ? deadline : lab.deadline;
+  lab.totalMarks = totalMarks !== undefined ? (totalMarks != null ? Number(totalMarks) : null) : lab.totalMarks;
   lab.isVisible = isVisible !== undefined ? isVisible : lab.isVisible;
 
   await lab.save();

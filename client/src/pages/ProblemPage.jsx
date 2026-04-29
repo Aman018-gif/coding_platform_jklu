@@ -51,6 +51,7 @@ export default function ChallengePage() {
   const [personalNotes, setPersonalNotes] = useState("");
   const [autoSaveStatus, setAutoSaveStatus] = useState("saved");
   const autosaveTimer = useRef(null);
+  const noteSaveTimer = useRef(null);
 
   useEffect(() => {
     if (!id) return;
@@ -58,6 +59,20 @@ export default function ChallengePage() {
     setCode(saved || DEFAULT_CODE[languageId] || "");
     setAutoSaveStatus("saved");
   }, [id, languageId]);
+
+  useEffect(() => {
+    const fetchNote = async () => {
+      try {
+        const { data } = await api.get(`/notes/problem/${id}`);
+        if (data.note) {
+          setPersonalNotes(data.note.content);
+        }
+      } catch (err) {
+        // ignore
+      }
+    };
+    if (id) fetchNote();
+  }, [id]);
 
   useEffect(() => {
     const fetchProblem = async () => {
@@ -85,6 +100,37 @@ export default function ChallengePage() {
     setLanguageId(newId);
     setRunResult(null);
     setSubmissionResult(null);
+  };
+
+  const handleNoteChange = (e) => {
+    const text = e.target.value;
+    setPersonalNotes(text);
+    if (noteSaveTimer.current) clearTimeout(noteSaveTimer.current);
+    noteSaveTimer.current = setTimeout(async () => {
+      try {
+        if (text.trim() === "") {
+          await api.delete(`/notes/problem/${id}`);
+        } else {
+          await api.post(`/notes/problem/${id}`, {
+            content: text,
+            title: problem?.title || "Personal Note",
+            contest_id: contestId || undefined
+          });
+        }
+      } catch (err) {
+        console.error("Failed to save note", err);
+      }
+    }, 1000);
+  };
+
+  const handleClearNote = async () => {
+    setPersonalNotes("");
+    if (noteSaveTimer.current) clearTimeout(noteSaveTimer.current);
+    try {
+      await api.delete(`/notes/problem/${id}`);
+    } catch (err) {
+      console.error("Failed to clear note", err);
+    }
   };
 
   const [customInput, setCustomInput] = useState("");
@@ -245,7 +291,7 @@ export default function ChallengePage() {
                 </span>
                 <button
                   type="button"
-                  onClick={() => setPersonalNotes("")}
+                  onClick={handleClearNote}
                   className="text-muted text-[0.72rem] bg-transparent border-none cursor-pointer p-0 hover:text-white transition-colors"
                 >
                   CLEAR
@@ -255,7 +301,7 @@ export default function ChallengePage() {
                 className="w-full bg-transparent text-muted text-sm resize-none min-h-[70px] border-none outline-none placeholder:text-muted/50"
                 placeholder="Draft your logic or keep track of edge cases here..."
                 value={personalNotes}
-                onChange={(e) => setPersonalNotes(e.target.value)}
+                onChange={handleNoteChange}
               />
             </div>
           </div>

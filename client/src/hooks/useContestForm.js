@@ -1,7 +1,14 @@
 import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { calcDuration, generateSlug } from '../utils/timeHelpers';
-import { createContest, updateContest, deleteContest, fetchStudentRoster, createProblem, addProblemsToContest } from '../api/contestApi';
+import {
+    createContest as _createContest,
+    updateContest as _updateContest,
+    deleteContest as _deleteContest,
+    fetchStudentRoster,
+    createProblem,
+    addProblemsToContest as _addProblemsToContest,
+} from '../api/contestApi';
 
 const TABS = ['Landing Page', 'Problems', 'Moderators', 'Participants'];
 const GROUPS = ['First Year', 'Second Year', 'Open'];
@@ -40,7 +47,11 @@ export function validateForm(data) {
     return errors;
 }
 
-export function useContestForm(currentUser) {
+export function useContestForm(currentUser, apiModule = {}, extraData = {}) {
+    const createContest       = apiModule.createContest       ?? _createContest;
+    const updateContest       = apiModule.updateContest       ?? _updateContest;
+    const deleteContest       = apiModule.deleteContest       ?? _deleteContest;
+    const addProblemsToContest = apiModule.addProblemsToContest ?? _addProblemsToContest;
     const [form, setForm] = useState(DEFAULT_FORM);
     const [activeTab, setActiveTab] = useState('Landing Page');
     const [contestCreated, setContestCreated] = useState(false);
@@ -143,6 +154,7 @@ export function useContestForm(currentUser) {
                 bannerImageURL: form.bannerImageURL,
                 description: form.description,
                 isPublic: form.isPublic,
+                ...extraData,
             };
 
             const response = await createContest(contestData);

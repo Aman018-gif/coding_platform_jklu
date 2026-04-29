@@ -16,11 +16,19 @@ import ModeratorsTab from "../components/CreateContest/Tabs/ModeratorsTab";
 import ParticipantsTab from "../components/CreateContest/Tabs/ParticipantsTab";
 import { useContestForm, TABS } from "../hooks/useContestForm";
 import { fetchContestBySlug, fetchMyContests, fetchContestById } from "../api/contestApi";
+import { createExam, updateExam, deleteExam, addProblemsToExam, fetchExamById } from "../api/examApi";
 
-export default function CreateContestPage({ isEmbedded = false, onBack } = {}) {
+export default function CreateContestPage({ isEmbedded = false, onBack, isExam = false, classId = null } = {}) {
   const { user: currentUser } = useContext(Context);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+
+  const entityLabel = isExam ? "Exam" : "Contest";
+
+  // When in exam mode, swap in the exam API functions
+  const examApiModule = isExam
+    ? { createContest: createExam, updateContest: updateExam, deleteContest: deleteExam, addProblemsToContest: addProblemsToExam }
+    : {};
 
   const backDest =
     currentUser?.role === "Teacher" || currentUser?.role === "Admin"
@@ -55,7 +63,7 @@ export default function CreateContestPage({ isEmbedded = false, onBack } = {}) {
     setActiveTab,
     setContestCreated,
     handlers,
-  } = useContestForm(currentUser);
+  } = useContestForm(currentUser, examApiModule, classId ? { class_id: classId } : {});
 
   const { 
     handleFieldChange, 
@@ -93,7 +101,7 @@ export default function CreateContestPage({ isEmbedded = false, onBack } = {}) {
     const loadContestForEdit = async () => {
       setIsLoadingEdit(true);
       try {
-        const contest = await fetchContestById(editId);
+        const contest = await (isExam ? fetchExamById(editId) : fetchContestById(editId));
         if (contest) {
           const startDate = new Date(contest.start_time);
           const endDate = new Date(contest.end_time);
@@ -223,7 +231,7 @@ export default function CreateContestPage({ isEmbedded = false, onBack } = {}) {
               <ChevronLeft size={16} /> Back to Dashboard
             </button>
             <h1 className="text-3xl font-bold text-white tracking-tight">
-              {isLoadingEdit ? "Loading..." : editId || contestCreated ? "Edit Contest" : "Create New Contest"}
+              {isLoadingEdit ? "Loading..." : editId || contestCreated ? `Edit ${entityLabel}` : `Create New ${entityLabel}`}
             </h1>
           </div>
         </div>
@@ -377,7 +385,7 @@ export default function CreateContestPage({ isEmbedded = false, onBack } = {}) {
                     : "bg-zinc-200 text-bg-dark hover:bg-yellow-300 disabled:opacity-50",
                 )}
               >
-                {contestCreated ? "Save Changes" : "Create Contest"}
+                {contestCreated ? "Save Changes" : `Create ${entityLabel}`}
               </button>
 
               {contestCreated && (

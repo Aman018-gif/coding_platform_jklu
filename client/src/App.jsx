@@ -116,6 +116,14 @@ const App = () => {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/manage-exam/:id"
+            element={
+              <ProtectedRoute allowedRoles={["Teacher", "Admin"]}>
+                <ManageContestPage />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
         <ToastContainer theme="colored" />
       </Router>
