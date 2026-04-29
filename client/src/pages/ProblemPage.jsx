@@ -34,6 +34,8 @@ export default function ChallengePage() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const contestId = searchParams.get("contest");
+  const labId = searchParams.get("lab");
+  const classId = searchParams.get("class");
   const { isAuthenticated } = useContext(Context);
 
   const [problem, setProblem] = useState(null);
@@ -116,7 +118,13 @@ export default function ChallengePage() {
     setSubmissionResult(null);
     try {
       const { data } = await api.post("/submissions/submit", {
-        source_code: code, language_id: languageId, language: selectedLanguageLabel, problem_id: id, contest_id: contestId || undefined,
+        source_code: code,
+        language_id: languageId,
+        language: selectedLanguageLabel,
+        problem_id: id,
+        contest_id: contestId || undefined,
+        lab_id: labId || undefined,
+        class_id: classId || undefined,
       });
       setSubmissionResult(data.submission || null);
     } catch (err) {
@@ -158,7 +166,7 @@ export default function ChallengePage() {
 
           {/* breadcrumb + title */}
           <div className="px-4 pt-2.5 text-[0.72rem] text-muted tracking-wider shrink-0">
-            {contestId ? `JKLU_DAA_CONTEST / PROBLEM` : "PROBLEM"}
+            {contestId ? `JKLU_DAA_CONTEST / PROBLEM` : labId ? `LAB WORK / PROBLEM` : "PROBLEM"}
           </div>
           <div className="px-4 pt-1 pb-3 border-b border-card-border shrink-0">
             <h2 className="font-bold text-xl mb-2">{problem.title}</h2>
@@ -307,7 +315,7 @@ export default function ChallengePage() {
               {activeTab === "SUBMISSIONS" && (
                   <div className="absolute inset-x-0 bottom-0 h-[calc(100%-40px)] p-0 z-10 overflow-hidden bg-bg-dark">
                     <div className="h-full overflow-auto">
-                      <Submissions isWidget={true} contestId={contestId} />
+                      <Submissions isWidget={true} contestId={contestId} labId={labId} />
                     </div>
                   </div>
               )}

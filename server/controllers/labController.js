@@ -284,7 +284,8 @@ export const getMyLabs = catchAsyncError(async (req, res, next) => {
       deadline: lab.deadline,
       maxMarks,
       marksObtained,
-      status
+      status,
+      class_id: lab.class_id
     };
   });
 

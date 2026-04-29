@@ -25,6 +25,8 @@ import TeacherDashboard from "./pages/TeacherDashboard";
 import StudentClassDashboard from "./pages/StudentClassDashboard";
 import ClassDetailsPage from "./pages/ClassDetailsPage";
 import ProtectedRoute from "./components/ProtectedRoute";
+import LabDetailsPage from "./pages/LabDetailsPage";
+
 
 const API_BASE = "http://localhost:4000/api/v1";
 
@@ -70,6 +72,8 @@ const App = () => {
           <Route path="/contests/archive" element={<ContestArchivePage />} />
           <Route path="/my-classes" element={<StudentClassDashboard />} />
           <Route path="/class/:id" element={<ClassDetailsPage />} />
+          <Route path="/class/:classId/labs/:labId" element={<LabDetailsPage />} />
+
 
           {/* ── Role-protected routes ─────────────────────────────────── */}
           <Route
