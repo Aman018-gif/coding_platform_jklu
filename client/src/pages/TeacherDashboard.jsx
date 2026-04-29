@@ -611,35 +611,56 @@ function GradesTab({ cls }) {
             <thead>
               <tr className="bg-zinc-900/70">
                 <th className="sticky left-0 bg-zinc-900 px-4 py-3 text-left text-xs font-medium text-zinc-400 uppercase tracking-wide border-b border-r border-white/10 min-w-40">Student</th>
-                {columns.map(({ lab, problem }) => (
-                  <th key={`${lab._id}-${problem._id}`} className="px-3 py-3 text-center border-b border-white/10 min-w-28">
-                    <p className="text-xs text-zinc-500 truncate max-w-24">{lab.title}</p>
-                    <p className="text-xs text-zinc-300 truncate max-w-24 font-medium">{problem.title}</p>
-                  </th>
-                ))}
-                <th className="px-4 py-3 text-center border-b border-l border-white/10 text-xs font-medium text-zinc-400 uppercase tracking-wide">Total</th>
+                {columns.map((col) =>
+                  col.type === "score" ? (
+                    <th key={`score-${col.lab._id}`} className="px-3 py-3 text-center border-b border-l border-white/10 min-w-24 bg-amber-400/5">
+                      <p className="text-xs text-zinc-500 truncate max-w-20">{col.lab.title}</p>
+                      <p className="text-xs text-amber-400 font-semibold uppercase tracking-wide">Score</p>
+                      {col.lab.totalMarks != null && (
+                        <p className="text-xs text-zinc-600">/ {col.lab.totalMarks}</p>
+                      )}
+                    </th>
+                  ) : (
+                    <th key={`${col.lab._id}-${col.problem._id}`} className="px-3 py-3 text-center border-b border-white/10 min-w-28">
+                      <p className="text-xs text-zinc-500 truncate max-w-24">{col.lab.title}</p>
+                      <p className="text-xs text-zinc-300 truncate max-w-24 font-medium">{col.problem.title}</p>
+                    </th>
+                  )
+                )}
+                <th className="px-4 py-3 text-center border-b border-l border-white/10 text-xs font-medium text-amber-400 uppercase tracking-wide min-w-28">Grand Score</th>
               </tr>
             </thead>
             <tbody>
               {students.map((s) => {
-                let solved = 0;
+                let grandEarned = 0, grandMax = 0;
                 return (
                   <tr key={s._id} className="border-b border-white/5 hover:bg-white/3 transition-colors">
                     <td className="sticky left-0 bg-zinc-900 px-4 py-3 border-r border-white/10">
                       <p className="text-sm text-white font-medium">{s.name}</p>
                       <p className="text-xs text-zinc-500">{s.email}</p>
                     </td>
-                    {columns.map(({ lab, problem }) => {
-                      const st = lookup[`${s._id}:${problem._id}:${lab._id}`];
-                      if (st === "Accepted") solved++;
+                    {columns.map((col) => {
+                      if (col.type === "score") {
+                        const sc = calcLabScore(s, col.lab);
+                        grandEarned += sc.earned;
+                        grandMax += sc.max;
+                        return (
+                          <td key={`score-${col.lab._id}`} className="px-3 py-3 text-center border-l border-white/10 bg-amber-400/5">
+                            <span className="text-xs font-semibold text-amber-400">{sc.display}</span>
+                          </td>
+                        );
+                      }
+                      const st = lookup[`${s._id}:${col.problem._id}:${col.lab._id}`];
                       return (
-                        <td key={`${lab._id}-${problem._id}`} className="px-3 py-3 text-center border-white/5">
+                        <td key={`${col.lab._id}-${col.problem._id}`} className="px-3 py-3 text-center">
                           {statusCell(st)}
                         </td>
                       );
                     })}
                     <td className="px-4 py-3 text-center border-l border-white/10">
-                      <span className="text-xs font-medium text-amber-400">{solved}/{columns.length}</span>
+                      <span className="text-xs font-semibold text-amber-400">
+                        {grandMax > 0 ? `${grandEarned} / ${grandMax}` : "—"}
+                      </span>
                     </td>
                   </tr>
                 );
