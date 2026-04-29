@@ -7,7 +7,8 @@ import {
   MessageCircle, 
   MoreVertical,
   Clock,
-  FileText
+  FileText,
+  Trophy
 } from "lucide-react";
 import api from "../api/client";
 import { toast } from "react-toastify";
@@ -38,6 +39,7 @@ export default function ClassDetailsPage() {
   const [classDetails, setClassDetails] = useState(null);
   const [announcements, setAnnouncements] = useState([]);
   const [labs, setLabs] = useState([]);
+  const [exams, setExams] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -48,10 +50,11 @@ export default function ClassDetailsPage() {
     setIsLoading(true);
     try {
       // Fetch all data in parallel for faster load
-      const [classRes, annRes, labsRes] = await Promise.all([
+      const [classRes, annRes, labsRes, examsRes] = await Promise.all([
         api.get(`/classes/${id}`),
         api.get(`/announcements/class/${id}`),
         api.get(`/labs/class/${id}`),
+        api.get(`/exams/class/${id}`),
       ]);
 
       setClassDetails(classRes.data.classDetails);
@@ -67,6 +70,7 @@ export default function ClassDetailsPage() {
         return true;
       });
       setLabs(filteredLabs);
+      setExams(examsRes.data.exams || []);
     } catch (error) {
       console.error("Error fetching class details:", error);
       toast.error(error.response?.data?.message || "Failed to load class data");
@@ -293,31 +297,31 @@ export default function ClassDetailsPage() {
 
           {activeTab === "labexams" && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {labs.length === 0 ? (
-                <div className="bg-card-dark border border-white/10 rounded-xl p-6 text-center text-zinc-400 w-full">
+              {exams.length === 0 ? (
+                <div className="bg-card-dark border border-white/10 rounded-xl p-6 text-center text-zinc-400 w-full col-span-full">
                   No lab exams posted yet for this course.
                 </div>
               ) : (
-                labs.map((lab) => (
+                exams.map((exam) => (
                   <div
-                    key={lab._id}
-                    onClick={() => navigate(`/class/${id}/labs/${lab._id}`)}
+                    key={exam._id}
+                    onClick={() => navigate(`/contests/${exam._id}`)}
                     className="bg-card-dark border border-white/10 rounded-xl p-5 shadow-sm cursor-pointer hover:bg-white/5 transition-all group"
                   >
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="w-9 h-9 rounded-full bg-blue-500/10 flex items-center justify-center">
-                        <FileText size={18} className="text-blue-400" />
+                      <div className="w-9 h-9 rounded-full bg-amber-500/10 flex items-center justify-center">
+                        <Trophy size={18} className="text-amber-400" />
                       </div>
                       <div className="flex-1">
-                        <h4 className="text-sm font-semibold text-white truncate">{lab.title}</h4>
-                        <p className="text-xs text-zinc-400 truncate">{lab.description || "Lab exam"}</p>
+                        <h4 className="text-sm font-semibold text-white truncate">{exam.name}</h4>
+                        <p className="text-xs text-zinc-400 truncate">{exam.description || "Lab exam"}</p>
                       </div>
                     </div>
                     <div className="flex items-center justify-between mt-2 text-xs text-zinc-500">
                       <span>
-                        Due {lab.deadline ? new Date(lab.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'}
+                        Starts {exam.start_time ? new Date(exam.start_time).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'}
                       </span>
-                      <span>View Questions</span>
+                      <span>{exam.problems?.length || 0} Problems</span>
                     </div>
                   </div>
                 ))
