@@ -67,8 +67,8 @@ function Btn({ children, variant = "primary", size = "md", className = "", ...pr
   const sz = size === "sm" ? "px-3 py-1.5 text-xs" : "px-4 py-2 text-sm";
   const v = variant === "primary" ? "bg-amber-400 text-black hover:bg-amber-300"
     : variant === "ghost" ? "bg-white/5 text-zinc-300 hover:text-white hover:bg-white/10 border border-white/10"
-    : variant === "danger" ? "bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20"
-    : "bg-zinc-800 text-zinc-300 hover:text-white border border-white/10";
+      : variant === "danger" ? "bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20"
+        : "bg-zinc-800 text-zinc-300 hover:text-white border border-white/10";
   return <button className={`${base} ${sz} ${v} ${className}`} {...props}>{children}</button>;
 }
 
@@ -179,7 +179,7 @@ function ClassworkTab({ cls }) {
   }, [cls._id]);
 
   const fetchProblems = useCallback(() => {
-    api.get("/problems").then(({ data }) => setProblems(data.problems.filter((p) => !p.contest_id))).catch(() => {});
+    api.get("/problems").then(({ data }) => setProblems(data.problems.filter((p) => !p.contest_id))).catch(() => { });
   }, []);
 
   useEffect(() => { fetchLabs(); fetchProblems(); }, [fetchLabs, fetchProblems]);
@@ -485,30 +485,30 @@ function PeopleTab({ cls, onRefresh }) {
         <p className="text-sm text-zinc-400 mb-3">{students.length} student{students.length !== 1 ? "s" : ""} enrolled</p>
         {loading ? <TableSkeleton />
           : students.length === 0 ? <Card><p className="text-center text-zinc-500 py-4">No students yet.</p></Card>
-          : (
-            <Card className="p-0 overflow-hidden">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-white/10 bg-zinc-900/50">
-                    {["Name", "Email", ""].map((h) => (
-                      <th key={h} className="text-left px-4 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {students.map((s) => (
-                    <tr key={s._id} className="border-b border-white/5 hover:bg-white/3 transition-colors">
-                      <td className="px-4 py-3 text-white font-medium">{s.name}</td>
-                      <td className="px-4 py-3 text-zinc-400">{s.email}</td>
-                      <td className="px-4 py-3 text-right">
-                        <button onClick={() => removeStudent(s._id, s.name)} className="text-zinc-600 hover:text-red-400 transition-colors"><Trash2 size={13} /></button>
-                      </td>
+            : (
+              <Card className="p-0 overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-white/10 bg-zinc-900/50">
+                      {["Name", "Email", ""].map((h) => (
+                        <th key={h} className="text-left px-4 py-3 text-xs font-medium text-zinc-400 uppercase tracking-wide">{h}</th>
+                      ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </Card>
-          )}
+                  </thead>
+                  <tbody>
+                    {students.map((s) => (
+                      <tr key={s._id} className="border-b border-white/5 hover:bg-white/3 transition-colors">
+                        <td className="px-4 py-3 text-white font-medium">{s.name}</td>
+                        <td className="px-4 py-3 text-zinc-400">{s.email}</td>
+                        <td className="px-4 py-3 text-right">
+                          <button onClick={() => removeStudent(s._id, s.name)} className="text-zinc-600 hover:text-red-400 transition-colors"><Trash2 size={13} /></button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </Card>
+            )}
       </div>
     </div>
   );
@@ -674,34 +674,34 @@ function ContestsTab({ onCreateExam, cls }) {
       </div>
       {loading ? <div className="flex justify-center py-10"><Loader2 className="animate-spin text-amber-400" size={24} /></div>
         : contests.length === 0 ? <Card><p className="text-center text-zinc-500 py-6">No exams yet. Create your first exam.</p></Card>
-        : (
-          <div className="space-y-3">
-            {contests.map((c) => {
-              const start = new Date(c.start_time), end = new Date(c.end_time);
-              const isLive = c.is_active && now >= start && now <= end;
-              const isUpcoming = now < start;
-              const statusColor = isLive ? "bg-emerald-500/15 text-emerald-400" : isUpcoming ? "bg-amber-400/15 text-amber-400" : "bg-zinc-700 text-zinc-400";
-              const statusLabel = isLive ? "Live" : isUpcoming ? "Upcoming" : "Ended";
-              return (
-                <Card key={c._id} className="flex items-center justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <p className="font-medium text-white">{c.name}</p>
-                      <span className={`text-xs px-2 py-0.5 rounded font-medium ${statusColor}`}>{statusLabel}</span>
-                      {c.isOwner && <span className="text-xs bg-blue-500/15 text-blue-400 px-2 py-0.5 rounded">Owner</span>}
+          : (
+            <div className="space-y-3">
+              {contests.map((c) => {
+                const start = new Date(c.start_time), end = new Date(c.end_time);
+                const isLive = c.is_active && now >= start && now <= end;
+                const isUpcoming = now < start;
+                const statusColor = isLive ? "bg-emerald-500/15 text-emerald-400" : isUpcoming ? "bg-amber-400/15 text-amber-400" : "bg-zinc-700 text-zinc-400";
+                const statusLabel = isLive ? "Live" : isUpcoming ? "Upcoming" : "Ended";
+                return (
+                  <Card key={c._id} className="flex items-center justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="font-medium text-white">{c.name}</p>
+                        <span className={`text-xs px-2 py-0.5 rounded font-medium ${statusColor}`}>{statusLabel}</span>
+                        {c.isOwner && <span className="text-xs bg-blue-500/15 text-blue-400 px-2 py-0.5 rounded">Owner</span>}
+                      </div>
+                      <p className="text-xs text-zinc-400">
+                        {start.toLocaleDateString()} — {end.toLocaleDateString()} · {c.participants?.length ?? 0} participants · {c.problems?.length ?? 0} problems
+                      </p>
                     </div>
-                    <p className="text-xs text-zinc-400">
-                      {start.toLocaleDateString()} — {end.toLocaleDateString()} · {c.participants?.length ?? 0} participants · {c.problems?.length ?? 0} problems
-                    </p>
-                  </div>
-                  <Btn variant="ghost" size="sm" onClick={() => navigate(`/manage-exam/${c._id}`)}>
-                    <ExternalLink size={13} /> Manage
-                  </Btn>
-                </Card>
-              );
-            })}
-          </div>
-        )}
+                    <Btn variant="ghost" size="sm" onClick={() => navigate(`/manage-contest/${c._id}`)}>
+                      <ExternalLink size={13} /> Manage
+                    </Btn>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
     </div>
   );
 }
