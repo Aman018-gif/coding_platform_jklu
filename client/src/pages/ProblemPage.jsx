@@ -5,7 +5,6 @@ import api from "../api/client";
 import Navbar from "../layout/Navbar";
 import CodeEditor, { LANGUAGE_IDS } from "../components/editor/CodeEditor";
 import TestCasesConsole from "../components/editor/TestCasesConsole";
-import Submissions from "../components/contest/Submissions";
 import { NotepadText,NotebookPen } from "lucide-react";
 
 const DEFAULT_CODE = {
@@ -358,13 +357,6 @@ export default function ChallengePage() {
                 running={running}
               />
               
-              {activeTab === "SUBMISSIONS" && (
-                  <div className="absolute inset-x-0 bottom-0 h-[calc(100%-40px)] p-0 z-10 overflow-hidden bg-bg-dark">
-                    <div className="h-full overflow-auto">
-                      <Submissions isWidget={true} contestId={contestId} labId={labId} />
-                    </div>
-                  </div>
-              )}
             </div>
 
             {/* Action buttons */}
