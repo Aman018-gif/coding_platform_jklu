@@ -33,6 +33,7 @@ export default function ChallengePage() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const contestId = searchParams.get("contest");
+  const contestName = searchParams.get("cname");
   const labId = searchParams.get("lab");
   const classId = searchParams.get("class");
   const { isAuthenticated } = useContext(Context);
@@ -210,8 +211,8 @@ export default function ChallengePage() {
         <div className="w-[40%] flex flex-col border-r border-card-border min-h-0">
 
           {/* breadcrumb + title */}
-          <div className="px-4 pt-2.5 text-[0.72rem] text-muted tracking-wider shrink-0">
-            {contestId ? `JKLU_DAA_CONTEST / PROBLEM` : labId ? `LAB WORK / PROBLEM` : "PROBLEM"}
+          <div className="px-4 pt-2.5 text-[0.72rem] text-muted tracking-wider shrink-0 uppercase">
+            {contestId ? `${contestName || "CONTEST"} / PROBLEM` : labId ? `LAB WORK / PROBLEM` : "PROBLEM"}
           </div>
           <div className="px-4 pt-1 pb-3 border-b border-card-border shrink-0">
             <h2 className="font-bold text-xl mb-2">{problem.title}</h2>

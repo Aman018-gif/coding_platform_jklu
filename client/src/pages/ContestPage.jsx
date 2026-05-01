@@ -45,11 +45,12 @@ export default function ContestPage() {
 
   const isTeacher = TEACHER_ROLES.has(user?.role);
 
+  const isExam = window.location.pathname.includes('/exams/');
+
   useEffect(() => {
     const fetchContest = async () => {
       try {
         let response;
-        const isExam = window.location.pathname.includes('/exams/');
         const isObjectId = id && /^[0-9a-fA-F]{24}$/.test(id);
         const url = isObjectId 
           ? (isExam ? `/exams/${id}` : `/contests/${id}`) 
@@ -65,13 +66,12 @@ export default function ContestPage() {
       }
     };
     if (id) fetchContest();
-  }, [id]);
+  }, [id, isExam]);
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
         let endpoint;
-        const isExam = window.location.pathname.includes('/exams/');
         const isObjectId = /^[0-9a-fA-F]{24}$/.test(id);
         if (isObjectId) {
           endpoint = `/contests/${id}/leaderboard`;
@@ -87,8 +87,8 @@ export default function ContestPage() {
         setLeaderboard([]);
       }
     };
-    if (id && contest) fetchLeaderboard();
-  }, [id, contest]);
+    if (id && contest && !isExam) fetchLeaderboard();
+  }, [id, contest, isExam]);
 
   if (!isAuthenticated) {
     return <Navigate to="/auth" />;
@@ -154,7 +154,9 @@ export default function ContestPage() {
 
       {/* Tab Navigation */}
       <div className="flex gap-6 mb-8 border-b border-card-border">
-        {["problems", "leaderboard", "submissions"].map((t) => (
+        {["problems", "leaderboard", "submissions"]
+          .filter((t) => !(isExam && t === "leaderboard"))
+          .map((t) => (
           <button
             key={t}
             type="button"
@@ -193,6 +195,7 @@ export default function ContestPage() {
                       problem={p}
                       index={idx}
                       contestId={id}
+                      contestName={contest.name}
                     />
                   </div>
                 ))

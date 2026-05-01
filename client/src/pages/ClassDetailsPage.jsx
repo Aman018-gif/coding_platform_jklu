@@ -305,7 +305,7 @@ export default function ClassDetailsPage() {
                 exams.map((exam) => (
                   <div
                     key={exam._id}
-                    onClick={() => navigate(`/contests/${exam._id}`)}
+                    onClick={() => navigate(`/exams/${exam._id}`)}
                     className="bg-card-dark border border-white/10 rounded-xl p-5 shadow-sm cursor-pointer hover:bg-white/5 transition-all group"
                   >
                     <div className="flex items-center gap-3 mb-2">
