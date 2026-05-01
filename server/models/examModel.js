@@ -24,7 +24,5 @@ const examSchema = new mongoose.Schema({
 });
 
 examSchema.index({ start_time: 1, end_time: 1 });
-examSchema.index({ slug: 1 });
-examSchema.index({ created_by: 1 });
 
 export const Exam = mongoose.model("Exam", examSchema);

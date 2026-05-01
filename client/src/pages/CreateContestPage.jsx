@@ -502,6 +502,8 @@ export default function CreateContestPage({ isEmbedded = false, onBack, isExam =
       </main>
   );
 
+  const isTeacher = currentUser?.role === "Teacher" || currentUser?.role === "Sadmin";
+
   if (isEmbedded) {
     return (
       <div className="fixed inset-0 z-50 bg-zinc-900 text-white overflow-y-auto">
@@ -509,5 +511,14 @@ export default function CreateContestPage({ isEmbedded = false, onBack, isExam =
       </div>
     );
   }
+
+  if (isTeacher) {
+    return (
+      <div className="min-h-screen bg-bg-dark text-white font-sans">
+        {pageBody}
+      </div>
+    );
+  }
+
   return <MainLayout>{pageBody}</MainLayout>;
 }
